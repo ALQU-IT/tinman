@@ -3,6 +3,7 @@
     "tinman:voltite_ore",
     "tinman:deepslate_voltite_ore",
     "tinman:voltite_block",
-    "tinman:assembler"
+    "tinman:assembler",
+    "tinman:charging_station"
   ]
 }

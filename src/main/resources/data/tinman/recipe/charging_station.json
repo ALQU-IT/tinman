@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "V": "tinman:voltite_ingot",
+    "I": "minecraft:iron_ingot",
+    "B": "tinman:voltite_block",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "IVI",
+    "RBR",
+    "III"
+  ],
+  "result": {
+    "id": "tinman:charging_station"
+  }
+}

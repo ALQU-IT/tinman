@@ -11,5 +11,18 @@
   "item.tinman.voltite_shovel": "Voltite Shovel",
   "item.tinman.voltite_hoe": "Voltite Hoe",
   "block.tinman.assembler": "Assembler",
-  "container.tinman.assembler": "Assembler"
+  "container.tinman.assembler": "Assembler",
+  "block.tinman.charging_station": "Charging Station",
+  "container.tinman.charging_station": "Charging Station",
+  "item.tinman.tin_man_helmet": "Tin Man Helmet",
+  "item.tinman.tin_man_chestplate": "Tin Man Chestplate",
+  "item.tinman.tin_man_leggings": "Tin Man Leggings",
+  "item.tinman.tin_man_boots": "Tin Man Boots",
+  "tooltip.tinman.energy": "Energy: %s / %s",
+  "tooltip.tinman.durability": "Durability: %s / %s",
+  "tooltip.tinman.set_bonus": "Full set: flight, fall and fire immunity",
+  "hud.tinman.energy": "PWR %s / %s",
+  "hud.tinman.altitude": "ALT %s",
+  "hud.tinman.target": "%s  %s/%s HP",
+  "hud.tinman.flight_disabled": "FLIGHT OFFLINE"
 }

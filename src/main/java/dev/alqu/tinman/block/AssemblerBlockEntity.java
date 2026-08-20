@@ -1,5 +1,7 @@
 package dev.alqu.tinman.block;
 
+import dev.alqu.tinman.config.TinManConfig;
+import dev.alqu.tinman.item.Energy;
 import dev.alqu.tinman.recipe.AssemblingRecipe;
 import dev.alqu.tinman.recipe.ModRecipes;
 import dev.alqu.tinman.registry.ModBlockEntities;
@@ -182,6 +184,14 @@ public class AssemblerBlockEntity extends BaseContainerBlockEntity implements Wo
 					entity.craft(recipe, result);
 				}
 			}
+		} else if (entity.canRecharge()) {
+			crafting = true;
+			entity.progress++;
+
+			if (entity.progress >= ASSEMBLY_TIME) {
+				entity.progress = 0;
+				entity.recharge();
+			}
 		}
 
 		if (!crafting && entity.progress != 0) {
@@ -214,6 +224,59 @@ public class AssemblerBlockEntity extends BaseContainerBlockEntity implements Wo
 			this.items.set(OUTPUT_SLOT, result);
 		} else {
 			out.grow(result.getCount());
+		}
+
+		this.setChanged();
+	}
+
+	/**
+	 * A lone piece of energy gear in the grid is a recharge job rather than a recipe: each cycle
+	 * burns one Voltite Ingot from the power cell into the item.
+	 *
+	 * @return the grid slot holding the item, or -1 if this is not a recharge
+	 */
+	private int rechargeSlot() {
+		int found = -1;
+
+		for (int slot = 0; slot < GRID_SIZE; slot++) {
+			ItemStack stack = this.items.get(slot);
+
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			// Anything else in the grid means the player meant to craft, not to charge.
+			if (found != -1 || !Energy.stores(stack) || stack.getCount() != 1) {
+				return -1;
+			}
+
+			found = slot;
+		}
+
+		return found;
+	}
+
+	private boolean canRecharge() {
+		int slot = this.rechargeSlot();
+		return slot >= 0 && Energy.get(this.items.get(slot)) < Energy.max() && this.hasPower(1);
+	}
+
+	private void recharge() {
+		int slot = this.rechargeSlot();
+
+		if (slot < 0) {
+			return;
+		}
+
+		this.items.get(POWER_SLOT).shrink(1);
+
+		ItemStack gear = this.items.get(slot);
+		Energy.charge(gear, TinManConfig.get().suit.energyPerIngot);
+
+		// Eject to the output once it is full, so hoppers can collect finished gear.
+		if (Energy.get(gear) >= Energy.max() && this.items.get(OUTPUT_SLOT).isEmpty()) {
+			this.items.set(OUTPUT_SLOT, gear.copy());
+			this.items.set(slot, ItemStack.EMPTY);
 		}
 
 		this.setChanged();

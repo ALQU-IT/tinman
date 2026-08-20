@@ -1,7 +1,10 @@
 package dev.alqu.tinman;
 
 import dev.alqu.tinman.config.TinManConfig;
+import dev.alqu.tinman.component.ModComponents;
 import dev.alqu.tinman.recipe.ModRecipes;
+import dev.alqu.tinman.registry.ModArmor;
+import dev.alqu.tinman.suit.SuitEvents;
 import dev.alqu.tinman.registry.ModBlockEntities;
 import dev.alqu.tinman.registry.ModBlocks;
 import dev.alqu.tinman.registry.ModItemGroup;
@@ -23,9 +26,12 @@ public class TinMan implements ModInitializer {
 
 		ModBlocks.init();
 		ModBlockEntities.init();
+		ModComponents.init();
 		ModItems.init();
+		ModArmor.init();
 		ModRecipes.init();
 		ModMenus.init();
+		SuitEvents.register();
 		ModItemGroup.init();
 		ModWorldGen.init();
 

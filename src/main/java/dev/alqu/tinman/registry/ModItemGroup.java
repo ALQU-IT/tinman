@@ -1,6 +1,7 @@
 package dev.alqu.tinman.registry;
 
 import dev.alqu.tinman.TinMan;
+import dev.alqu.tinman.registry.ModArmor;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -27,6 +28,7 @@ public final class ModItemGroup {
 				output.accept(ModBlocks.DEEPSLATE_VOLTITE_ORE);
 				output.accept(ModBlocks.VOLTITE_BLOCK);
 				output.accept(ModBlocks.ASSEMBLER);
+				output.accept(ModBlocks.CHARGING_STATION);
 				output.accept(ModItems.RAW_VOLTITE);
 				output.accept(ModItems.VOLTITE_INGOT);
 				output.accept(ModItems.VOLTITE_NUGGET);
@@ -34,6 +36,10 @@ public final class ModItemGroup {
 				output.accept(ModItems.VOLTITE_AXE);
 				output.accept(ModItems.VOLTITE_SHOVEL);
 				output.accept(ModItems.VOLTITE_HOE);
+				output.accept(ModArmor.TIN_MAN_HELMET);
+				output.accept(ModArmor.TIN_MAN_CHESTPLATE);
+				output.accept(ModArmor.TIN_MAN_LEGGINGS);
+				output.accept(ModArmor.TIN_MAN_BOOTS);
 			})
 			.build();
 
