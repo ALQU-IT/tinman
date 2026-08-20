@@ -1,2 +1,247 @@
-# tinman
-A Iron Man Mod for Minecraft
+# Tin Man
+
+A Fabric mod for **Minecraft Java Edition 26.2** that adds Voltite ore, a data-driven crafting
+station called the Assembler, and a powered high-tech armour set with matching energy weapons.
+
+---
+
+## What you need
+
+| Thing | Version | Notes |
+|---|---|---|
+| Minecraft | 26.2 | |
+| Java | **25 or newer** | 26.2 requires it; the build targets release 25 |
+| Fabric Loader | 0.19.3+ | |
+| Fabric API | 0.158.0+26.2 | required at runtime, downloaded by Gradle for dev |
+| Gradle | 9.5.1 | supplied by the wrapper — don't install it yourself |
+
+Mappings are Mojang's official mappings, which is what Fabric Loom uses for 26.x by default.
+There is no Yarn mapping for this version, so no `yarn_mappings` entry exists in
+`gradle.properties`.
+
+## Building
+
+```bash
+export JAVA_HOME=/path/to/jdk-25
+./gradlew build
+```
+
+The mod jar lands in `build/libs/tinman-1.0.0.jar` — that is the one to install.
+Ignore `tinman-1.0.0-sources.jar`.
+
+## Running it
+
+**In a normal game:** install Fabric Loader 0.19.3 for 26.2, drop
+`fabric-api-0.158.0+26.2.jar` and `tinman-1.0.0.jar` into `.minecraft/mods/`, and launch.
+
+**In a dev environment:**
+
+```bash
+./gradlew runClient     # client with the mod loaded
+./gradlew runServer     # dedicated server; accept the EULA in run/eula.txt first
+```
+
+On a dedicated server the mod must be installed on **both** sides: the client needs it for the
+HUD, screens and particles, and the server needs it for everything else.
+
+## Configuration
+
+Written to `config/tinman.json` on first launch and re-saved on load, so new options appear
+automatically after an update. Server-side values are authoritative.
+
+```jsonc
+{
+  "worldgen": {
+    "voltiteOreEnabled": true,
+    "voltiteVeinsPerChunk": 3.5   // fractional values work: 3.5 = three veins plus a coin flip
+  },
+  "suit": {
+    "maxEnergy": 10000,           // per armour piece
+    "flightEnabled": true,
+    "flightDrainPerSecond": 20,
+    "boostDrainMultiplier": 3.0,
+    "boostSpeed": 0.085,
+    "chargingStationRate": 100,   // energy per second
+    "energyPerIngot": 2500        // what one Voltite Ingot is worth
+  },
+  "weapons": {
+    "pulseDamage": 6.0,
+    "chargedPulseDamage": 14.0,
+    "pulseEnergyCost": 50,
+    "chargedPulseEnergyCost": 250,
+    "pulseCooldownTicks": 10,
+    "pulseChargeTicks": 20,
+    "chargedShotEnabled": true,
+    "chargedShotExplosionRadius": 2.0,
+    "bladeEnergyBonusDamage": 3.0,
+    "bladeEnergyCostPerHit": 20
+  }
+}
+```
+
+---
+
+## Contents
+
+### Voltite
+
+Voltite Ore and Deepslate Voltite Ore generate between **Y -40 and Y 16** in two vein sizes (4 and
+6). They need an **iron pickaxe or better**, drop 1–2 Raw Voltite (affected by Fortune) or the ore
+block itself with Silk Touch, and give 3–7 XP.
+
+Measured over 401 generated chunks with the default rate: about **14 Voltite per chunk against 23
+diamond**, so it is meaningfully rarer than diamond overall while being concentrated in a much
+narrower band. Turn `voltiteVeinsPerChunk` up or down to taste.
+
+Smelt or blast Raw Voltite (or the ore) into a **Voltite Ingot**. Nine nuggets make an ingot, nine
+ingots make a **Block of Voltite** (which glows faintly at light level 4).
+
+**Tools** — Voltite Pickaxe, Axe, Shovel and Hoe are crafted in a **normal crafting table**. They
+mine faster than diamond (speed 9.5 vs 8.0) at diamond mining tier, with 1800 durability.
+
+### The Assembler
+
+Crafted in a normal crafting table:
+
+```
+I V I     I = iron ingot      V = Voltite Ingot
+I C I     C = crafting table  B = iron block
+B V B
+```
+
+It has a 3×3 grid, a **power cell** slot that only takes Voltite Ingots, and an output slot. An
+assembly takes 3 seconds and consumes ingots from the power cell.
+
+It uses its **own recipe type**, `tinman:assembling`, loaded from JSON, so server admins and
+datapacks can add their own. The syntax matches `minecraft:crafting_shaped`, plus an optional
+`power_cost` (default 1):
+
+```json
+{
+  "type": "tinman:assembling",
+  "key": { "V": "tinman:voltite_ingot", "I": "minecraft:iron_block" },
+  "pattern": ["VVV", "V V", "IRI"],
+  "result": { "id": "tinman:tin_man_helmet" },
+  "power_cost": 2
+}
+```
+
+The Assembler drops its contents when broken, emits a comparator signal, and **works with
+hoppers** — fed from above, powered from the sides, results pulled from below. Items inserted by a
+hopper are spread across the grid rather than piled into one slot, so multi-slot recipes can be
+automated.
+
+Leaving a **single** piece of energy gear in the grid with ingots in the power cell recharges it
+instead of crafting; once full it is ejected to the output slot.
+
+### The Tin Man suit
+
+All four pieces are **Assembler-only**. Protection lands between diamond and netherite: 21 armour
+points (one above diamond), toughness 2.5 and 0.05 knockback resistance. They are enchantable,
+armour-trim compatible, and repaired with Voltite Ingots.
+
+Each piece stores up to 10,000 energy in a `tinman:energy` data component, so charge survives
+death, chests, and multiplayer. The bar under the icon shows **energy**; the tooltip spells out
+durability separately so nothing is hidden.
+
+**Full set with charge remaining:**
+
+- Creative-style flight, draining energy per second. Hold sprint while flying to boost — faster,
+  costlier, with thruster flames from the boots.
+- Immunity to fall and fire damage.
+- Helmet HUD: energy bar (red below 15%), altitude, and the name and health of whatever your
+  crosshair is on.
+- Night vision underwater and in the dark.
+- **Energy hits zero and flight cuts out that same tick**, with a power-down sound. The armour
+  keeps working as ordinary protection.
+
+Individual pieces worn alone give protection only.
+
+**Recharging** — either put a piece in the Assembler with ingots in the power cell, or use the
+**Charging Station**, which burns ingots into a buffer and trickles it into its own four gear slots
+and any suit worn within four blocks.
+
+### Weapons
+
+Both are **Assembler-only** and draw on their own charge first, falling back to the worn suit, so
+firing never drains your flight reserve first.
+
+- **Pulse Gauntlet** — tap right-click to fire an energy bolt (damage plus knockback, short
+  cooldown). Hold to charge a heavier shot that also sets off a small blast. The blast damages mobs
+  but **never breaks blocks**, and can be switched off in the config.
+- **Voltite Blade** — sword tier between diamond and netherite (3.5 damage bonus, 1900 durability).
+  Deals bonus damage while you have charge to spend, with electric sparks on hit.
+
+### Advancements
+
+Mine your first Voltite → build an Assembler → craft the full suit → fly 1000 blocks. Flight
+distance is tracked persistently, so progress survives logging out.
+
+---
+
+## How it is put together
+
+`src/main` is common code, `src/client` is client-only — Loom's split source sets mean
+client-only classes physically cannot be referenced from server code by accident.
+
+Energy consumption, flight permission, recipe matching and projectile logic are all
+**server-side**. The client does no gameplay decision-making: it reads the energy component
+(which vanilla already syncs along with equipped stacks) to draw the HUD, and receives flight
+permission through the vanilla abilities packet. Particles the player shouldn't be alone in seeing
+are broadcast from the server with `sendParticles`, so nearby players see the same thing.
+
+That means the mod deliberately ships **no custom packets** — every piece of state that has to
+cross the wire already has a synced vanilla carrier. Adding a bespoke packet alongside a synced
+data component would have created a second source of truth that could drift.
+
+### Layout
+
+```
+src/main/java/dev/alqu/tinman/
+├── advancement/   custom flight-distance criterion + persistent attachment
+├── block/         Assembler and Charging Station blocks and block entities
+├── component/     the tinman:energy data component
+├── config/        config record, read/written as config/tinman.json
+├── entity/        PulseBolt projectile
+├── item/          armour, weapons, energy helpers
+├── menu/          container menus (server-authoritative slot rules)
+├── recipe/        the tinman:assembling recipe type and serializer
+├── registry/      registration holders
+├── suit/          server-side suit behaviour: flight, drain, immunities
+└── worldgen/      config-driven ore placement modifier
+```
+
+## Placeholder assets
+
+Every texture, the five sounds and the mod icon are generated placeholders, sized and named the way
+the real thing would be, so you can drop replacements straight in:
+
+- Blocks and items: `assets/tinman/textures/{block,item}/*.png` (16×16)
+- Worn armour layers: `assets/tinman/textures/entity/equipment/humanoid{,_leggings}/tin_man.png` (64×32)
+- Particles: `assets/tinman/textures/particle/*.png` (8×8, 4 and 3 frame animations)
+- GUIs: `assets/tinman/textures/gui/container/*.png` (256×256)
+- Sounds: `assets/tinman/sounds/*.ogg` (Ogg Vorbis, mono 44.1 kHz)
+
+`thruster_loop.ogg` and `assembler_hum.ogg` are crossfaded to loop seamlessly.
+
+## What has and hasn't been tested
+
+Verified by running a real dedicated 26.2 server and inspecting world data:
+
+- The mod loads with no errors; ore generates in the right Y band at the measured rate.
+- The Assembler crafts from its own recipe type, consuming the grid and the right number of
+  power-cell ingots.
+- Recharging works both in the Assembler and the Charging Station, at the configured rate.
+- Energy persists in NBT as a data component.
+- Pulse bolts damage mobs, despawn on impact, and a charged blast damages mobs while leaving
+  adjacent glass intact.
+- A hopper → Assembler → hopper → chest chain auto-crafted four times unattended.
+
+**Not verified**, because it needs a real graphical client rather than a headless server: the HUD
+overlay, screen rendering, particle appearance, sound playback, worn armour layers, and flight
+handling as felt in first person. The code paths are there, but treat the visuals and flight feel
+as the first things to check in game.
+
+## Licence
+
+MIT — see `LICENSE`.

@@ -2,6 +2,7 @@ package dev.alqu.tinman.item;
 
 import dev.alqu.tinman.config.TinManConfig;
 import dev.alqu.tinman.entity.PulseBolt;
+import dev.alqu.tinman.registry.ModSounds;
 import dev.alqu.tinman.suit.SuitEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -74,9 +75,8 @@ public class PulseGauntletItem extends net.minecraft.world.item.Item implements 
 			bolt.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, charged ? 2.2F : 1.8F, 0.4F);
 			serverLevel.addFreshEntity(bolt);
 
-			level.playSound(null, player.blockPosition(),
-				charged ? SoundEvents.BEACON_POWER_SELECT : SoundEvents.ARROW_SHOOT,
-				SoundSource.PLAYERS, 0.8F, charged ? 0.8F : 1.6F);
+			level.playSound(null, player.blockPosition(), ModSounds.REPULSOR_FIRE,
+				SoundSource.PLAYERS, charged ? 1.0F : 0.7F, charged ? 0.75F : 1.25F);
 		}
 
 		player.getCooldowns().addCooldown(stack, Math.max(1, charged ? config.pulseCooldownTicks * 3 : config.pulseCooldownTicks));

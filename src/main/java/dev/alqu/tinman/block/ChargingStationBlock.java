@@ -2,6 +2,7 @@ package dev.alqu.tinman.block;
 
 import com.mojang.serialization.MapCodec;
 import dev.alqu.tinman.registry.ModBlockEntities;
+import dev.alqu.tinman.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -93,7 +94,7 @@ public class ChargingStationBlock extends BaseEntityBlock {
 
 		// A slow upward drift of sparks, so a working station reads at a glance.
 		if (random.nextDouble() < 0.6) {
-			level.addParticle(ParticleTypes.ELECTRIC_SPARK,
+			level.addParticle(ModParticles.ASSEMBLER_SPARK,
 				pos.getX() + 0.2 + random.nextDouble() * 0.6,
 				pos.getY() + 1.0,
 				pos.getZ() + 0.2 + random.nextDouble() * 0.6,

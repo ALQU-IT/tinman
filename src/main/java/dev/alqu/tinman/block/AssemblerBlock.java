@@ -2,9 +2,12 @@ package dev.alqu.tinman.block;
 
 import com.mojang.serialization.MapCodec;
 import dev.alqu.tinman.registry.ModBlockEntities;
+import dev.alqu.tinman.registry.ModParticles;
+import dev.alqu.tinman.registry.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
@@ -119,11 +122,16 @@ public class AssemblerBlock extends BaseEntityBlock {
 		double z = pos.getZ() + 0.5;
 
 		if (random.nextDouble() < 0.35) {
-			level.addParticle(ParticleTypes.ELECTRIC_SPARK,
+			level.addParticle(ModParticles.ASSEMBLER_SPARK,
 				x + (random.nextDouble() - 0.5) * 0.6,
 				y,
 				z + (random.nextDouble() - 0.5) * 0.6,
 				0.0, 0.02, 0.0);
+		}
+
+		// The hum is client-local so it never costs the server a packet per tick.
+		if (random.nextDouble() < 0.06) {
+			level.playLocalSound(x, y, z, ModSounds.ASSEMBLER_HUM, SoundSource.BLOCKS, 0.45F, 1.0F, false);
 		}
 	}
 }

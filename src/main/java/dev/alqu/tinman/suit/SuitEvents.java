@@ -1,8 +1,11 @@
 package dev.alqu.tinman.suit;
 
+import dev.alqu.tinman.advancement.ModTriggers;
 import dev.alqu.tinman.config.TinManConfig;
 import dev.alqu.tinman.item.Energy;
 import dev.alqu.tinman.registry.ModArmor;
+import dev.alqu.tinman.registry.ModParticles;
+import dev.alqu.tinman.registry.ModSounds;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -19,6 +22,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.Mth;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -167,11 +171,12 @@ public final class SuitEvents {
 				player.onUpdateAbilities();
 				granted.add(id);
 				player.level().playSound(null, player.blockPosition(),
-					SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.6F, 1.6F);
+					ModSounds.SUIT_POWER_UP, SoundSource.PLAYERS, 0.7F, 1.0F);
 			}
 
 			if (abilities.flying) {
 				drainForFlight(player, config, pieces);
+				trackFlightDistance(player);
 			}
 
 			return;
@@ -184,8 +189,24 @@ public final class SuitEvents {
 			player.onUpdateAbilities();
 			drainCarry.remove(id);
 			player.level().playSound(null, player.blockPosition(),
-				SoundEvents.BEACON_DEACTIVATE, SoundSource.PLAYERS, 0.7F, 0.7F);
+				ModSounds.SUIT_POWER_DOWN, SoundSource.PLAYERS, 0.8F, 1.0F);
 		}
+	}
+
+	/** Accumulates distance flown under suit power and offers it to the advancement trigger. */
+	private static void trackFlightDistance(ServerPlayer player) {
+		double moved = Mth.length(
+			player.getX() - player.xOld,
+			player.getY() - player.yOld,
+			player.getZ() - player.zOld);
+
+		if (moved <= 0.0) {
+			return;
+		}
+
+		double total = player.getAttachedOrCreate(ModTriggers.FLIGHT_DISTANCE) + moved;
+		player.setAttached(ModTriggers.FLIGHT_DISTANCE, total);
+		ModTriggers.SUIT_FLIGHT.trigger(player, total);
 	}
 
 	private static void drainForFlight(ServerPlayer player, TinManConfig config, List<ItemStack> pieces) {
@@ -216,10 +237,16 @@ public final class SuitEvents {
 		if (player.level() instanceof ServerLevel level) {
 			// Thruster plume under the boots, broadcast so other players see it too.
 			Vec3 pos = player.position();
-			level.sendParticles(ParticleTypes.FLAME,
-				pos.x, pos.y + 0.1, pos.z, 4, 0.12, 0.05, 0.12, 0.01);
+			level.sendParticles(ModParticles.THRUSTER_FLAME,
+				pos.x, pos.y + 0.1, pos.z, 5, 0.12, 0.05, 0.12, 0.02);
 			level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
 				pos.x, pos.y + 0.1, pos.z, 2, 0.15, 0.05, 0.15, 0.02);
+
+			// Thruster note, throttled so it reads as a loop rather than a machine-gun.
+			if (player.tickCount % 8 == 0) {
+				level.playSound(null, player.blockPosition(),
+					ModSounds.THRUSTER_LOOP, SoundSource.PLAYERS, 0.35F, 1.0F);
+			}
 		}
 	}
 

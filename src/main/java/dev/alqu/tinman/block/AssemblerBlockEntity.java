@@ -296,7 +296,50 @@ public class AssemblerBlockEntity extends BaseContainerBlockEntity implements Wo
 
 	@Override
 	public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
-		return this.canPlaceItem(slot, stack);
+		if (!this.canPlaceItem(slot, stack)) {
+			return false;
+		}
+
+		if (slot >= GRID_SIZE) {
+			return true;
+		}
+
+		// A hopper fills the first slot that will take the item, which would pile a whole stack
+		// into one grid cell and never match a multi-slot recipe. Only accept into the emptiest
+		// cell so repeated inserts spread across the grid instead.
+		int here = this.acceptableCount(slot, stack);
+
+		if (here < 0) {
+			return false;
+		}
+
+		for (int other = 0; other < GRID_SIZE; other++) {
+			int count = this.acceptableCount(other, stack);
+
+			if (count >= 0 && count < here) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * How many of {@code stack}'s item the given grid slot already holds, or -1 if that slot
+	 * cannot take any more of it.
+	 */
+	private int acceptableCount(int slot, ItemStack stack) {
+		ItemStack existing = this.items.get(slot);
+
+		if (existing.isEmpty()) {
+			return 0;
+		}
+
+		if (!ItemStack.isSameItemSameComponents(existing, stack) || existing.getCount() >= existing.getMaxStackSize()) {
+			return -1;
+		}
+
+		return existing.getCount();
 	}
 
 	@Override

@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "get_assembler": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "tinman:assembler"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "get_assembler"
+    ]
+  ],
+  "display": {
+    "icon": {
+      "id": "tinman:assembler"
+    },
+    "title": {
+      "translate": "advancements.tinman.build_assembler.title"
+    },
+    "description": {
+      "translate": "advancements.tinman.build_assembler.description"
+    }
+  },
+  "sends_telemetry_event": false,
+  "parent": "tinman:root"
+}
