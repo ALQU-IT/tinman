@@ -49,6 +49,11 @@ HUD, screens and particles, and the server needs it for everything else.
 Written to `config/tinman.json` on first launch and re-saved on load, so new options appear
 automatically after an update. Server-side values are authoritative.
 
+> **Upgrading from an earlier build:** values already in your `config/tinman.json` are kept, by
+> design — only genuinely new keys are added. That means a rebalance of existing keys does **not**
+> reach a world you have already run. To pick up new defaults, delete `config/tinman.json` and let
+> it regenerate, or edit the individual numbers by hand.
+
 ```jsonc
 {
   "worldgen": {
@@ -65,16 +70,22 @@ automatically after an update. Server-side values are authoritative.
     "energyPerIngot": 2500        // what one Voltite Ingot is worth
   },
   "weapons": {
-    "pulseDamage": 6.0,
-    "chargedPulseDamage": 14.0,
-    "pulseEnergyCost": 50,
-    "chargedPulseEnergyCost": 250,
-    "pulseCooldownTicks": 10,
-    "pulseChargeTicks": 20,
+    "pulseDamage": 18.0,
+    "chargedPulseDamage": 45.0,
+    "pulseEnergyCost": 25,
+    "chargedPulseEnergyCost": 150,
+    "pulseCooldownTicks": 2,          // 10 shots a second
+    "pulseChargeTicks": 10,
+    "pulseVelocity": 3.2,
+    "chargedPulseVelocity": 3.8,
     "chargedShotEnabled": true,
-    "chargedShotExplosionRadius": 2.0,
-    "bladeEnergyBonusDamage": 3.0,
-    "bladeEnergyCostPerHit": 20
+    "chargedShotExplosionRadius": 5.0,
+    "chargedShotBreaksBlocks": true,
+    "blockLaunchChance": 0.45,        // share of broken blocks thrown as debris
+    "blockLaunchPower": 0.55,
+    "maxLaunchedBlocks": 90,          // per blast, so a big radius cannot flood the server
+    "bladeEnergyBonusDamage": 9.0,
+    "bladeEnergyCostPerHit": 15
   }
 }
 ```
@@ -97,7 +108,8 @@ Smelt or blast Raw Voltite (or the ore) into a **Voltite Ingot**. Nine nuggets m
 ingots make a **Block of Voltite** (which glows faintly at light level 4).
 
 **Tools** — Voltite Pickaxe, Axe, Shovel and Hoe are crafted in a **normal crafting table**. They
-mine faster than diamond (speed 9.5 vs 8.0) at diamond mining tier, with 1800 durability.
+are deliberately overpowered: netherite mining tier, speed 24 (netherite is 9), 4200 durability
+and +6 attack damage.
 
 ### The Assembler
 
@@ -179,7 +191,10 @@ firing never drains your flight reserve first.
 
 - **Pulse Gauntlet** — tap right-click to fire an energy bolt (damage plus knockback, short
   cooldown). Hold to charge a heavier shot that also sets off a small blast. The blast damages mobs
-  but **never breaks blocks**, and can be switched off in the config.
+  and **tears up terrain**: it carves a ragged crater and throws a share of the debris outward as
+  real falling blocks rather than quiet drops. Bedrock and anything else unbreakable is left
+  alone. The whole charged shot can be switched off in the config, and terrain damage can be
+  turned off on its own with `chargedShotBreaksBlocks`.
 
   It is a 3D model rather than a flat sprite, shaped as a sleeve that sits around the forearm, and
   its held-hand display transforms slide it back off the fist so it reads as worn rather than
@@ -187,8 +202,9 @@ firing never drains your flight reserve first.
   `display.thirdperson_righthand.translation` in
   `assets/tinman/models/item/pulse_gauntlet.json`: the second value slides it along the arm, the
   third moves it toward or away from the elbow.
-- **Voltite Blade** — sword tier between diamond and netherite (3.5 damage bonus, 1900 durability).
-  Deals bonus damage while you have charge to spend, with electric sparks on hit.
+- **Voltite Blade** — deliberately overpowered: +12 base damage bonus (netherite is 4), 4500
+  durability, and a faster swing. Deals a further +9 while you have charge to spend, with electric
+  sparks on hit.
 
 ### Advancements
 

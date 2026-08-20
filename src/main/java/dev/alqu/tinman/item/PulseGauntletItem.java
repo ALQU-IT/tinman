@@ -72,7 +72,8 @@ public class PulseGauntletItem extends net.minecraft.world.item.Item implements 
 		if (level instanceof ServerLevel serverLevel) {
 			PulseBolt bolt = new PulseBolt(serverLevel, player);
 			bolt.configure((float) (charged ? config.chargedPulseDamage : config.pulseDamage), charged);
-			bolt.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, charged ? 2.2F : 1.8F, 0.4F);
+			bolt.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F,
+				(float) (charged ? config.chargedPulseVelocity : config.pulseVelocity), 0.25F);
 			serverLevel.addFreshEntity(bolt);
 
 			level.playSound(null, player.blockPosition(), ModSounds.REPULSOR_FIRE,

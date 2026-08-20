@@ -2,6 +2,7 @@ package dev.alqu.tinman.entity;
 
 import dev.alqu.tinman.config.TinManConfig;
 import dev.alqu.tinman.registry.ModEntities;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -10,13 +11,21 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The Pulse Gauntlet's projectile.
@@ -113,12 +122,94 @@ public class PulseBolt extends ThrowableProjectile {
 		TinManConfig.Weapons config = TinManConfig.get().weapons;
 
 		if (this.charged && config.chargedShotEnabled && config.chargedShotExplosionRadius > 0) {
-			// ExplosionInteraction.NONE: hurts mobs, never touches terrain.
-			level.explode(this.getOwner(), pos.x, pos.y, pos.z,
-				(float) config.chargedShotExplosionRadius, Level.ExplosionInteraction.NONE);
+			this.detonate(level, pos, config);
 		}
 
 		this.discard();
+	}
+
+
+	/**
+	 * Charged-shot blast.
+	 *
+	 * <p>Terrain is handled here rather than by the vanilla explosion so that some of the debris
+	 * can be thrown outward as real falling blocks instead of quietly turning into drops. The
+	 * vanilla explosion still runs afterwards, purely for entity damage and knockback.
+	 */
+	private void detonate(ServerLevel level, Vec3 pos, TinManConfig.Weapons config) {
+		if (config.chargedShotBreaksBlocks) {
+			this.breakAndFling(level, pos, config);
+		}
+
+		level.explode(this.getOwner(), pos.x, pos.y, pos.z,
+			(float) config.chargedShotExplosionRadius, Level.ExplosionInteraction.NONE);
+	}
+
+	private void breakAndFling(ServerLevel level, Vec3 center, TinManConfig.Weapons config) {
+		double radius = config.chargedShotExplosionRadius;
+		RandomSource random = level.getRandom();
+		BlockPos origin = BlockPos.containing(center);
+		int reach = Mth.ceil(radius);
+
+		List<BlockPos> affected = new ArrayList<>();
+
+		for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-reach, -reach, -reach), origin.offset(reach, reach, reach))) {
+			double distance = Math.sqrt(pos.distToCenterSqr(center));
+
+			if (distance > radius) {
+				continue;
+			}
+
+			BlockState state = level.getBlockState(pos);
+
+			// Leave air, fluids and anything unbreakable (bedrock reports a negative speed) alone.
+			if (state.isAir() || !state.getFluidState().isEmpty() || state.getDestroySpeed(level, pos) < 0.0F) {
+				continue;
+			}
+
+			// Thin the crater out toward the rim so the edge is ragged rather than a clean sphere.
+			// Squared falloff keeps the core solidly gone and only frays the last part of the
+			// radius; a linear one ate too much of the middle.
+			double falloff = distance / radius;
+
+			if (random.nextDouble() < falloff * falloff) {
+				continue;
+			}
+
+			affected.add(pos.immutable());
+		}
+
+		// Shuffle so the thrown blocks are scattered through the crater, not just its first corner.
+		Collections.shuffle(affected, new java.util.Random(random.nextLong()));
+
+		int launched = 0;
+
+		for (BlockPos pos : affected) {
+			BlockState state = level.getBlockState(pos);
+
+			if (state.isAir()) {
+				continue;
+			}
+
+			// Block entities do not survive the trip, so those are simply broken.
+			boolean canFling = !state.hasBlockEntity()
+				&& launched < config.maxLaunchedBlocks
+				&& random.nextDouble() < config.blockLaunchChance;
+
+			if (!canFling) {
+				level.destroyBlock(pos, true);
+				continue;
+			}
+
+			// fall() clears the block and spawns the entity for us.
+			FallingBlockEntity debris = FallingBlockEntity.fall(level, pos, state);
+			Vec3 outward = Vec3.atCenterOf(pos).subtract(center);
+			double length = Math.max(0.4, outward.length());
+
+			debris.setDeltaMovement(outward.scale(config.blockLaunchPower / length).add(0.0, 0.4, 0.0));
+			debris.dropItem = true;
+			launched++;
+		}
 	}
 
 	@Override

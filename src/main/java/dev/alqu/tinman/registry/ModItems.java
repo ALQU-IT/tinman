@@ -28,12 +28,13 @@ public final class ModItems {
 	 * Sits between diamond and netherite on durability and damage, but mines faster than either.
 	 * Mining tier matches diamond, so it can still handle obsidian and ancient debris.
 	 */
+	/** Deliberately overpowered: well past netherite on every axis. */
 	public static final ToolMaterial VOLTITE_TOOL_MATERIAL = new ToolMaterial(
-		BlockTags.INCORRECT_FOR_DIAMOND_TOOL,
-		1800,
-		9.5F,
-		3.0F,
-		15,
+		BlockTags.INCORRECT_FOR_NETHERITE_TOOL,
+		4200,
+		24.0F,
+		6.0F,
+		28,
 		REPAIRS_VOLTITE_TOOLS
 	);
 

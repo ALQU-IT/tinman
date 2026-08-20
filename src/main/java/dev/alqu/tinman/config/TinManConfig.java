@@ -52,25 +52,37 @@ public class TinManConfig {
 
 	public static class Weapons {
 		/** Damage dealt by an uncharged Pulse Gauntlet bolt. */
-		public double pulseDamage = 6.0;
+		public double pulseDamage = 18.0;
 		/** Damage dealt by a fully charged Pulse Gauntlet bolt. */
-		public double chargedPulseDamage = 14.0;
+		public double chargedPulseDamage = 45.0;
 		/** Energy consumed per uncharged shot. */
-		public int pulseEnergyCost = 50;
+		public int pulseEnergyCost = 25;
 		/** Energy consumed per charged shot. */
-		public int chargedPulseEnergyCost = 250;
-		/** Ticks between uncharged shots. */
-		public int pulseCooldownTicks = 10;
+		public int chargedPulseEnergyCost = 150;
+		/** Ticks between uncharged shots. Charged shots use three times this. */
+		public int pulseCooldownTicks = 2;
 		/** Ticks of holding right-click needed for a full charge. */
-		public int pulseChargeTicks = 20;
-		/** Whether the charged shot (and its small explosion) is enabled. */
+		public int pulseChargeTicks = 10;
+		/** How fast an uncharged bolt travels. */
+		public double pulseVelocity = 3.2;
+		/** How fast a charged bolt travels. */
+		public double chargedPulseVelocity = 3.8;
+		/** Whether the charged shot (and its explosion) is enabled. */
 		public boolean chargedShotEnabled = true;
-		/** Radius of the charged shot's explosion. It never breaks blocks. */
-		public double chargedShotExplosionRadius = 2.0;
+		/** Radius of the charged shot's explosion. */
+		public double chargedShotExplosionRadius = 5.0;
+		/** Whether the charged shot's explosion tears up terrain. */
+		public boolean chargedShotBreaksBlocks = true;
+		/** Fraction of the blocks it breaks that are thrown outward instead of just dropping. */
+		public double blockLaunchChance = 0.45;
+		/** How hard thrown blocks are flung. */
+		public double blockLaunchPower = 0.55;
+		/** Cap on thrown blocks per blast, so a big radius cannot flood the server with entities. */
+		public int maxLaunchedBlocks = 90;
 		/** Bonus damage the Voltite Blade deals while the wielder has energy available. */
-		public double bladeEnergyBonusDamage = 3.0;
+		public double bladeEnergyBonusDamage = 9.0;
 		/** Energy consumed by the Blade per empowered hit. */
-		public int bladeEnergyCostPerHit = 20;
+		public int bladeEnergyCostPerHit = 15;
 	}
 
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
