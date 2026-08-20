@@ -126,6 +126,11 @@ datapacks can add their own. The syntax matches `minecraft:crafting_shaped`, plu
 }
 ```
 
+It has a **recipe book**, the same widget the crafting table uses, listing only
+`tinman:assembling` recipes under one tab. Clicking a recipe lays it out in the grid as a ghost,
+and the usual click-to-fill and shift-click-to-fill-max both work. Recipes show up once unlocked,
+which happens as soon as you own an Assembler.
+
 The Assembler drops its contents when broken, emits a comparator signal, and **works with
 hoppers** — fed from above, powered from the sides, results pulled from below. Items inserted by a
 hopper are spread across the grid rather than piled into one slot, so multi-slot recipes can be
@@ -217,6 +222,10 @@ src/main/java/dev/alqu/tinman/
 └── worldgen/      config-driven ore placement modifier
 ```
 
+`src/main/resources/tinman.accesswidener` widens exactly two methods,
+`GhostSlots.setInput/setResult`. They are protected and live in a vanilla package, so a mod's own
+`RecipeBookComponent` cannot fill ghost slots without it. Nothing else in the mod needs widening.
+
 ## Placeholder assets
 
 Every texture, the five sounds and the mod icon are generated placeholders, sized and named the way
@@ -238,6 +247,8 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - The Assembler crafts from its own recipe type, consuming the grid and the right number of
   power-cell ingots.
 - Recharging works both in the Assembler and the Charging Station, at the configured rate.
+- The Assembler still crafts correctly after its menu moved onto RecipeBookMenu, and the 23
+  recipe-unlock advancements load (1692 -> 1715 advancements).
 - A full suit in the Charging Station's four slots charges in lockstep — all four pieces read
   identical energy at every sample, at exactly the configured rate.
 - Energy persists in NBT as a data component.
@@ -246,8 +257,8 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - A hopper → Assembler → hopper → chest chain auto-crafted four times unattended.
 
 **Not verified**, because it needs a real graphical client rather than a headless server: the HUD
-overlay, screen rendering, particle appearance, sound playback, worn armour layers, and flight
-handling as felt in first person. The code paths are there, but treat the visuals and flight feel
+overlay, screen rendering, the Assembler's recipe book, particle appearance, sound playback, worn
+armour layers, and flight handling as felt in first person. The code paths are there, but treat the visuals and flight feel
 as the first things to check in game.
 
 A dedicated server never loads blockstates, models or textures at all, so anything wrong in those

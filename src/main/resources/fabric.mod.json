@@ -26,5 +26,6 @@
   "icon": "assets/tinman/icon.png",
   "contact": {
     "sources": "https://github.com/ALQU-IT/tinman"
-  }
+  },
+  "accessWidener": "tinman.accesswidener"
 }

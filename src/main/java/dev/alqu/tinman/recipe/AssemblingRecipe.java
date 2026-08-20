@@ -1,6 +1,7 @@
 package dev.alqu.tinman.recipe;
 
 import com.mojang.serialization.Codec;
+import dev.alqu.tinman.registry.ModBlocks;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -14,9 +15,15 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * A shaped 3x3 recipe that only the Assembler can run.
@@ -120,5 +127,25 @@ public class AssemblingRecipe implements Recipe<CraftingInput> {
 	@Override
 	public RecipeBookCategory recipeBookCategory() {
 		return ModRecipes.ASSEMBLING_CATEGORY;
+	}
+
+	/**
+	 * What the recipe book draws for this recipe. Without this the book has nothing to render and
+	 * the recipe simply never appears, even once unlocked.
+	 *
+	 * <p>The station icon is the Assembler rather than a crafting table, so the book makes it
+	 * obvious where the recipe has to be made.
+	 */
+	@Override
+	public List<RecipeDisplay> display() {
+		return List.of(new ShapedCraftingRecipeDisplay(
+			this.pattern.width(),
+			this.pattern.height(),
+			this.pattern.ingredients().stream()
+				.map(ingredient -> ingredient.map(Ingredient::display).orElse(SlotDisplay.Empty.INSTANCE))
+				.toList(),
+			new SlotDisplay.ItemStackSlotDisplay(this.result),
+			new SlotDisplay.ItemSlotDisplay(ModBlocks.ASSEMBLER.asItem())
+		));
 	}
 }

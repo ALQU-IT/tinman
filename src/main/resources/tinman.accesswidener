@@ -1,0 +1,7 @@
+accessWidener v2 official
+
+# The recipe book fills ghost slots through these two methods. They are protected and
+# package-private to net.minecraft.client.gui.screens.recipebook, so a mod's own
+# RecipeBookComponent cannot call them without this. Nothing else here needs widening.
+accessible	method	net/minecraft/client/gui/screens/recipebook/GhostSlots	setInput	(Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/util/context/ContextMap;Lnet/minecraft/world/item/crafting/display/SlotDisplay;)V
+accessible	method	net/minecraft/client/gui/screens/recipebook/GhostSlots	setResult	(Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/util/context/ContextMap;Lnet/minecraft/world/item/crafting/display/SlotDisplay;)V

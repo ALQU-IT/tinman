@@ -16,6 +16,8 @@ repositories {
 }
 
 loom {
+	accessWidenerPath = file("src/main/resources/tinman.accesswidener")
+
 	splitEnvironmentSourceSets()
 
 	mods {

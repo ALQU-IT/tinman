@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_voltite_ore": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "tinman:voltite_ore"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "tinman:voltite_ingot_from_smelting_voltite_ore"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_voltite_ore"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "tinman:voltite_ingot_from_smelting_voltite_ore"
+    ]
+  }
+}

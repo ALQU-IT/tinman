@@ -1,20 +1,30 @@
 package dev.alqu.tinman.menu;
 
 import dev.alqu.tinman.block.AssemblerBlockEntity;
+import dev.alqu.tinman.recipe.AssemblingRecipe;
 import dev.alqu.tinman.registry.ModBlocks;
 import dev.alqu.tinman.registry.ModItems;
 import dev.alqu.tinman.registry.ModMenus;
+import net.minecraft.recipebook.ServerPlaceRecipe;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.RecipeBookMenu;
+import net.minecraft.world.inventory.RecipeBookType;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
-public class AssemblerMenu extends AbstractContainerMenu {
+import java.util.ArrayList;
+import java.util.List;
+
+public class AssemblerMenu extends RecipeBookMenu {
 	private static final int GRID_START = 0;
 	private static final int GRID_END = AssemblerBlockEntity.GRID_SIZE;
 	private static final int POWER_SLOT = AssemblerBlockEntity.POWER_SLOT;
@@ -47,7 +57,7 @@ public class AssemblerMenu extends AbstractContainerMenu {
 		}
 
 		// Power cell: Voltite Ingots only.
-		this.addSlot(new Slot(container, POWER_SLOT, 30, 75) {
+		this.addSlot(new Slot(container, POWER_SLOT, 152, 35) {
 			@Override
 			public boolean mayPlace(ItemStack stack) {
 				return stack.is(ModItems.VOLTITE_INGOT);
@@ -62,7 +72,7 @@ public class AssemblerMenu extends AbstractContainerMenu {
 			}
 		});
 
-		this.addStandardInventorySlots(playerInventory, 8, 104);
+		this.addStandardInventorySlots(playerInventory, 8, 84);
 		this.addDataSlots(data);
 	}
 
@@ -120,5 +130,79 @@ public class AssemblerMenu extends AbstractContainerMenu {
 
 		slot.onTake(player, stack);
 		return original;
+	}
+
+	// --- recipe book ---
+
+	/** The nine grid slots, in reading order, as the book expects them. */
+	public List<Slot> getInputGridSlots() {
+		List<Slot> grid = new ArrayList<>(AssemblerBlockEntity.GRID_SIZE);
+
+		for (int slot = GRID_START; slot < GRID_END; slot++) {
+			grid.add(this.slots.get(slot));
+		}
+
+		return grid;
+	}
+
+	public Slot getResultSlot() {
+		return this.slots.get(OUTPUT_SLOT);
+	}
+
+	/** Grid and output slots; the book dims everything else while it is open. */
+	public boolean isRecipeBookSlot(Slot slot) {
+		return slot.container == this.container
+			&& (slot.getContainerSlot() < GRID_END || slot.getContainerSlot() == OUTPUT_SLOT);
+	}
+
+	private CraftingInput gridInput() {
+		List<ItemStack> items = new ArrayList<>(AssemblerBlockEntity.GRID_SIZE);
+
+		for (int slot = GRID_START; slot < GRID_END; slot++) {
+			items.add(this.container.getItem(slot));
+		}
+
+		return CraftingInput.of(3, 3, items);
+	}
+
+	@Override
+	public void fillCraftSlotsStackedContents(StackedItemContents stackedContents) {
+		for (int slot = GRID_START; slot < GRID_END; slot++) {
+			stackedContents.accountSimpleStack(this.container.getItem(slot));
+		}
+	}
+
+	@Override
+	public RecipeBookType getRecipeBookType() {
+		// RecipeBookType is a fixed vanilla enum and only selects which saved open/filter state
+		// the book uses, not which recipes it lists, so borrowing CRAFTING is harmless.
+		return RecipeBookType.CRAFTING;
+	}
+
+	@Override
+	public RecipeBookMenu.PostPlaceAction handlePlacement(boolean useMaxItems, boolean allowDroppingItemsToClear,
+			RecipeHolder<?> recipe, ServerLevel level, Inventory inventory) {
+		@SuppressWarnings("unchecked")
+		RecipeHolder<AssemblingRecipe> typed = (RecipeHolder<AssemblingRecipe>) recipe;
+		List<Slot> grid = this.getInputGridSlots();
+
+		return ServerPlaceRecipe.placeRecipe(new ServerPlaceRecipe.CraftingMenuAccess<AssemblingRecipe>() {
+			@Override
+			public void fillCraftSlotsStackedContents(StackedItemContents stackedContents) {
+				AssemblerMenu.this.fillCraftSlotsStackedContents(stackedContents);
+			}
+
+			@Override
+			public void clearCraftingContent() {
+				for (int slot = GRID_START; slot < GRID_END; slot++) {
+					AssemblerMenu.this.container.setItem(slot, ItemStack.EMPTY);
+				}
+			}
+
+			@Override
+			public boolean recipeMatches(RecipeHolder<AssemblingRecipe> candidate) {
+				return candidate.value().matches(AssemblerMenu.this.gridInput(), level);
+			}
+		}, 3, 3, grid, grid, inventory, typed, useMaxItems, allowDroppingItemsToClear);
 	}
 }

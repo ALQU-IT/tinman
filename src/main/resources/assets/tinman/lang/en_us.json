@@ -15,6 +15,7 @@
   "container.tinman.assembler": "Assembler",
   "container.tinman.charging_station": "Charging Station",
   "entity.tinman.pulse_bolt": "Pulse Bolt",
+  "gui.tinman.assembler.toggleRecipes": "Assemblable",
   "hud.tinman.altitude": "ALT %s",
   "hud.tinman.energy": "PWR %s / %s",
   "hud.tinman.flight_disabled": "FLIGHT OFFLINE",

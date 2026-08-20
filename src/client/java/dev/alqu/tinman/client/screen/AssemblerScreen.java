@@ -1,16 +1,18 @@
 package dev.alqu.tinman.client.screen;
 
 import dev.alqu.tinman.TinMan;
+import dev.alqu.tinman.client.recipebook.AssemblerRecipeBookComponent;
 import dev.alqu.tinman.menu.AssemblerMenu;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.navigation.ScreenPosition;
+import net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 
-public class AssemblerScreen extends AbstractContainerScreen<AssemblerMenu> {
+public class AssemblerScreen extends AbstractRecipeBookScreen<AssemblerMenu> {
 	private static final Identifier TEXTURE = TinMan.id("textures/gui/container/assembler.png");
 
 	/** Position and size of the filled progress arrow inside the GUI texture. */
@@ -19,11 +21,29 @@ public class AssemblerScreen extends AbstractContainerScreen<AssemblerMenu> {
 	private static final int ARROW_W = 24;
 	private static final int ARROW_H = 17;
 	private static final int ARROW_X = 90;
-	private static final int ARROW_Y = 39;
+	private static final int ARROW_Y = 35;
 
 	public AssemblerScreen(AssemblerMenu menu, Inventory inventory, Component title) {
-		super(menu, inventory, title, 176, 200);
-		this.inventoryLabelY = this.imageHeight - 94;
+		// AbstractRecipeBookScreen only offers the default 176x166, which the layout now fits.
+		super(menu, new AssemblerRecipeBookComponent(menu), inventory, title);
+	}
+
+	@Override
+	protected void init() {
+		super.init();
+		// Leave room for the recipe book button, as the crafting table does.
+		this.titleLabelX = 29;
+	}
+
+	@Override
+	protected ScreenPosition getRecipeBookButtonPosition() {
+		return new ScreenPosition(this.leftPos + 5, this.topPos + 51);
+	}
+
+	@Override
+	protected boolean isBiggerResultSlot() {
+		// The Assembler's output is an ordinary 16x16 slot, not the crafting table's larger one.
+		return false;
 	}
 
 	@Override
