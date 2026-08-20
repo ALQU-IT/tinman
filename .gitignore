@@ -13,3 +13,6 @@ run/
 .settings/
 .classpath
 .project
+
+# Stray downloads
+*.tar.gz
