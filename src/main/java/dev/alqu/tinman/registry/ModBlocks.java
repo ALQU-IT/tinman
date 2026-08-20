@@ -1,6 +1,7 @@
 package dev.alqu.tinman.registry;
 
 import dev.alqu.tinman.TinMan;
+import dev.alqu.tinman.block.AssemblerBlock;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -54,6 +55,18 @@ public final class ModBlocks {
 			.strength(5.0F, 6.0F)
 			.sound(SoundType.METAL)
 			.lightLevel(state -> 4)
+	);
+
+	/** The mod's crafting station. Holds a block entity, a GUI and its own recipe type. */
+	public static final Block ASSEMBLER = register(
+		"assembler",
+		AssemblerBlock::new,
+		BlockBehaviour.Properties.of()
+			.mapColor(MapColor.METAL)
+			.requiresCorrectToolForDrops()
+			.strength(3.5F, 6.0F)
+			.sound(SoundType.METAL)
+			.lightLevel(state -> state.getValue(AssemblerBlock.CRAFTING) ? 7 : 0)
 	);
 
 	public static Block register(String name, Function<BlockBehaviour.Properties, Block> factory, BlockBehaviour.Properties properties) {

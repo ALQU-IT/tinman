@@ -1,9 +1,12 @@
 package dev.alqu.tinman;
 
 import dev.alqu.tinman.config.TinManConfig;
+import dev.alqu.tinman.recipe.ModRecipes;
+import dev.alqu.tinman.registry.ModBlockEntities;
 import dev.alqu.tinman.registry.ModBlocks;
 import dev.alqu.tinman.registry.ModItemGroup;
 import dev.alqu.tinman.registry.ModItems;
+import dev.alqu.tinman.registry.ModMenus;
 import dev.alqu.tinman.worldgen.ModWorldGen;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.Identifier;
@@ -19,7 +22,10 @@ public class TinMan implements ModInitializer {
 		TinManConfig.get();
 
 		ModBlocks.init();
+		ModBlockEntities.init();
 		ModItems.init();
+		ModRecipes.init();
+		ModMenus.init();
 		ModItemGroup.init();
 		ModWorldGen.init();
 
