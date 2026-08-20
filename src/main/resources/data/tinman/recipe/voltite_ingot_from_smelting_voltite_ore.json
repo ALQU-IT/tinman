@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": "tinman:voltite_ore",
+  "result": {
+    "id": "tinman:voltite_ingot"
+  },
+  "experience": 1.0,
+  "group": "voltite_ingot"
+}

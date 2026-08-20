@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "voltite_ingot",
+  "key": {
+    "#": "tinman:voltite_nugget"
+  },
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "result": {
+    "id": "tinman:voltite_ingot"
+  }
+}

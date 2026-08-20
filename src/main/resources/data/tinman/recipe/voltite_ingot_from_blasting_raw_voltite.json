@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:blasting",
+  "ingredient": "tinman:raw_voltite",
+  "result": {
+    "id": "tinman:voltite_ingot"
+  },
+  "experience": 1.0,
+  "group": "voltite_ingot"
+}

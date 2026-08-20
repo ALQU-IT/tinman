@@ -1,0 +1,16 @@
+{
+  "itemGroup.tinman.tin_man": "Tin Man",
+
+  "block.tinman.voltite_ore": "Voltite Ore",
+  "block.tinman.deepslate_voltite_ore": "Deepslate Voltite Ore",
+  "block.tinman.voltite_block": "Block of Voltite",
+
+  "item.tinman.raw_voltite": "Raw Voltite",
+  "item.tinman.voltite_ingot": "Voltite Ingot",
+  "item.tinman.voltite_nugget": "Voltite Nugget",
+
+  "item.tinman.voltite_pickaxe": "Voltite Pickaxe",
+  "item.tinman.voltite_axe": "Voltite Axe",
+  "item.tinman.voltite_shovel": "Voltite Shovel",
+  "item.tinman.voltite_hoe": "Voltite Hoe"
+}
