@@ -161,6 +161,12 @@ Individual pieces worn alone give protection only.
 **Charging Station**, which burns ingots into a buffer and trickles it into its own four gear slots
 and any suit worn within four blocks.
 
+The Station charges **everything at once** rather than one item at a time: the per-tick energy
+budget is split evenly across every piece that still has room, so dropping a whole suit into its
+four slots fills all four in lockstep. Anything that fills up drops out and its share is re-split
+among the rest. Gear in the slots is served first; whatever budget is left over goes to suits worn
+nearby.
+
 ### Weapons
 
 Both are **Assembler-only** and draw on their own charge first, falling back to the worn suit, so
@@ -232,6 +238,8 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - The Assembler crafts from its own recipe type, consuming the grid and the right number of
   power-cell ingots.
 - Recharging works both in the Assembler and the Charging Station, at the configured rate.
+- A full suit in the Charging Station's four slots charges in lockstep — all four pieces read
+  identical energy at every sample, at exactly the configured rate.
 - Energy persists in NBT as a data component.
 - Pulse bolts damage mobs, despawn on impact, and a charged blast damages mobs while leaving
   adjacent glass intact.

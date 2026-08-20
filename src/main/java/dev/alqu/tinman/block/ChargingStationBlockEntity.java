@@ -26,6 +26,9 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -50,6 +53,17 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 
 	private NonNullList<ItemStack> items = NonNullList.withSize(CONTAINER_SIZE, ItemStack.EMPTY);
 	private int stored;
+	/**
+	 * Fractional energy carried between ticks. Without this a rate that does not divide into 20
+	 * (anything under 20/second) truncates to zero every tick and the station silently never
+	 * charges. Not persisted: it is always worth less than one energy.
+	 */
+	private double chargeCarry;
+	/**
+	 * Rotates which target receives the remainder of an uneven split. Without it the same piece
+	 * collects the leftover every tick and charges measurably faster than the rest.
+	 */
+	private int spreadCursor;
 
 	private final ContainerData data = new ContainerData() {
 		@Override
@@ -143,9 +157,19 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 			entity.setChanged();
 		}
 
-		int budget = Math.max(0, config.suit.chargingStationRate) / 20;
+		if (entity.stored <= 0) {
+			// Don't bank carry while empty, or it would dump in one burst when fuel arrives.
+			entity.chargeCarry = 0.0;
+			entity.updateActiveState(serverLevel, pos, state, false);
+			return;
+		}
 
-		if (budget <= 0 || entity.stored <= 0) {
+		entity.chargeCarry += Math.max(0, config.suit.chargingStationRate) / 20.0;
+		int budget = (int) entity.chargeCarry;
+		entity.chargeCarry -= budget;
+		budget = Math.min(budget, entity.stored);
+
+		if (budget <= 0) {
 			entity.updateActiveState(serverLevel, pos, state, false);
 			return;
 		}
@@ -160,35 +184,81 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 		entity.updateActiveState(serverLevel, pos, state, spent > 0);
 	}
 
-	/** Feeds the gear slots first, then any suits worn within {@link #RANGE}. */
+	/**
+	 * Feeds the gear slots first, then any suits worn within {@link #RANGE}.
+	 *
+	 * <p>Within each of those two groups the budget is split evenly, so a whole suit sitting in
+	 * the slots fills together rather than one piece at a time.
+	 */
 	private int distribute(ServerLevel level, BlockPos pos, int budget) {
+		int offset = this.spreadCursor++;
+		int spent = spreadEvenly(this.gearTargets(), budget, offset);
+
+		if (spent < budget) {
+			spent += spreadEvenly(this.wornTargets(level, pos), budget - spent, offset);
+		}
+
+		return spent;
+	}
+
+	private List<ItemStack> gearTargets() {
+		List<ItemStack> targets = new ArrayList<>(GEAR_SLOTS);
+
+		for (int slot = FIRST_GEAR_SLOT; slot < CONTAINER_SIZE; slot++) {
+			targets.add(this.items.get(slot));
+		}
+
+		return targets;
+	}
+
+	private List<ItemStack> wornTargets(ServerLevel level, BlockPos pos) {
+		List<ItemStack> targets = new ArrayList<>();
+
+		for (Player player : level.getEntitiesOfClass(Player.class, new AABB(pos).inflate(RANGE))) {
+			targets.addAll(SuitEvents.suitPieces(player));
+		}
+
+		return targets;
+	}
+
+	/**
+	 * Charges every target at the same time by handing each an equal share of the budget.
+	 *
+	 * <p>Runs in passes: anything that fills up drops out and its unused share is re-split among
+	 * whatever still has room, so no energy is stranded on an almost-full piece.
+	 *
+	 * @return how much was actually spent
+	 */
+	private static int spreadEvenly(List<ItemStack> targets, int budget, int offset) {
+		targets.removeIf(stack -> !Energy.stores(stack) || Energy.get(stack) >= Energy.max());
+
+		if (targets.isEmpty()) {
+			return 0;
+		}
+
+		// Shift the starting point each tick so the remainder of an uneven split lands on a
+		// different piece every time, instead of always favouring the first one.
+		Collections.rotate(targets, -Math.floorMod(offset, targets.size()));
+
 		int spent = 0;
 
-		for (int slot = FIRST_GEAR_SLOT; slot < CONTAINER_SIZE && spent < budget; slot++) {
-			ItemStack stack = this.items.get(slot);
+		while (spent < budget && !targets.isEmpty()) {
+			// At least 1 apiece, so a budget smaller than the group still makes progress.
+			int share = Math.max(1, (budget - spent) / targets.size());
+			int before = spent;
 
-			if (Energy.stores(stack)) {
-				spent += Energy.charge(stack, Math.min(budget - spent, this.stored - spent));
+			for (Iterator<ItemStack> it = targets.iterator(); it.hasNext() && spent < budget; ) {
+				ItemStack stack = it.next();
+				spent += Energy.charge(stack, Math.min(share, budget - spent));
+
+				if (Energy.get(stack) >= Energy.max()) {
+					it.remove();
+				}
 			}
-		}
 
-		if (spent >= budget) {
-			return spent;
-		}
-
-		AABB box = new AABB(pos).inflate(RANGE);
-
-		for (Player player : level.getEntitiesOfClass(Player.class, box)) {
-			List<ItemStack> pieces = SuitEvents.suitPieces(player);
-
-			for (ItemStack piece : pieces) {
-				if (spent >= budget) {
-					return spent;
-				}
-
-				if (Energy.stores(piece)) {
-					spent += Energy.charge(piece, Math.min(budget - spent, this.stored - spent));
-				}
+			if (spent == before) {
+				// Nothing could take any more; stop rather than spin.
+				break;
 			}
 		}
 
