@@ -24,5 +24,11 @@
   "hud.tinman.energy": "PWR %s / %s",
   "hud.tinman.altitude": "ALT %s",
   "hud.tinman.target": "%s  %s/%s HP",
-  "hud.tinman.flight_disabled": "FLIGHT OFFLINE"
+  "hud.tinman.flight_disabled": "FLIGHT OFFLINE",
+  "item.tinman.voltite_blade": "Voltite Blade",
+  "item.tinman.pulse_gauntlet": "Pulse Gauntlet",
+  "entity.tinman.pulse_bolt": "Pulse Bolt",
+  "tooltip.tinman.gauntlet": "Bolt: %s damage, %s energy",
+  "tooltip.tinman.gauntlet_charged": "Charged: %s damage, %s energy",
+  "tooltip.tinman.blade": "+%s damage while charged (%s energy per hit)"
 }

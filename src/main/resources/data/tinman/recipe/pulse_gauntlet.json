@@ -1,0 +1,18 @@
+{
+  "type": "tinman:assembling",
+  "category": "equipment",
+  "key": {
+    "V": "tinman:voltite_ingot",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "VVV",
+    "VRV",
+    " I "
+  ],
+  "result": {
+    "id": "tinman:pulse_gauntlet"
+  },
+  "power_cost": 3
+}

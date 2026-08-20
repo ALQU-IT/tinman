@@ -1,7 +1,7 @@
 package dev.alqu.tinman.registry;
 
 import dev.alqu.tinman.TinMan;
-import dev.alqu.tinman.registry.ModArmor;
+
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -40,6 +40,8 @@ public final class ModItemGroup {
 				output.accept(ModArmor.TIN_MAN_CHESTPLATE);
 				output.accept(ModArmor.TIN_MAN_LEGGINGS);
 				output.accept(ModArmor.TIN_MAN_BOOTS);
+				output.accept(ModWeapons.VOLTITE_BLADE);
+				output.accept(ModWeapons.PULSE_GAUNTLET);
 			})
 			.build();
 

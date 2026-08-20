@@ -96,6 +96,47 @@ public final class SuitEvents {
 		return isFullSet(entity) && Energy.total(suitPieces(entity)) > 0;
 	}
 
+	/**
+	 * Spends energy on behalf of a powered weapon.
+	 *
+	 * <p>The held item's own charge goes first so that firing does not eat the flight reserve;
+	 * only once the weapon is empty does it fall back to the worn suit.
+	 *
+	 * @return true if the full amount was paid
+	 */
+	public static boolean drawPower(LivingEntity entity, ItemStack held, int amount) {
+		if (amount <= 0) {
+			return true;
+		}
+
+		if (Energy.stores(held) && Energy.get(held) >= amount) {
+			Energy.drain(held, amount);
+			return true;
+		}
+
+		if (isFullSet(entity)) {
+			List<ItemStack> pieces = suitPieces(entity);
+
+			if (Energy.total(pieces) >= amount) {
+				Energy.drainSpread(pieces, amount);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** How much energy a weapon could spend right now, from itself or the suit. */
+	public static int availablePower(LivingEntity entity, ItemStack held) {
+		int available = Energy.stores(held) ? Energy.get(held) : 0;
+
+		if (isFullSet(entity)) {
+			available += Energy.total(suitPieces(entity));
+		}
+
+		return available;
+	}
+
 	private static void tickPlayer(ServerPlayer player) {
 		TinManConfig config = TinManConfig.get();
 		List<ItemStack> pieces = suitPieces(player);

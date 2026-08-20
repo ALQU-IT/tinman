@@ -1,0 +1,17 @@
+{
+  "type": "tinman:assembling",
+  "category": "equipment",
+  "key": {
+    "V": "tinman:voltite_ingot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    " V ",
+    " V ",
+    " R "
+  ],
+  "result": {
+    "id": "tinman:voltite_blade"
+  },
+  "power_cost": 2
+}
