@@ -37,7 +37,12 @@ public class AssemblerBlock extends BaseEntityBlock {
 	public static final MapCodec<AssemblerBlock> CODEC = simpleCodec(AssemblerBlock::new);
 
 	public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
-	/** Drives the idle sparks and the hum; set by the block entity while an assembly is running. */
+	/**
+	 * Drives the idle sparks and the hum; set by the block entity while an assembly is running.
+	 *
+	 * <p>This reuses vanilla's LIT property, so despite the constant's name the blockstate JSON
+	 * must key its variants on {@code lit}, which is what blockstates/assembler.json does.
+	 */
 	public static final BooleanProperty CRAFTING = BlockStateProperties.LIT;
 
 	public AssemblerBlock(Properties properties) {

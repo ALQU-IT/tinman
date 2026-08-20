@@ -250,6 +250,12 @@ overlay, screen rendering, particle appearance, sound playback, worn armour laye
 handling as felt in first person. The code paths are there, but treat the visuals and flight feel
 as the first things to check in game.
 
+A dedicated server never loads blockstates, models or textures at all, so anything wrong in those
+files is invisible to the tests above — a blockstate whose variant keys don't match the block's
+real property names still starts a server cleanly and only shows up in game as an untextured
+block. If you touch a blockstate JSON, check its property names against the `BooleanProperty` /
+`EnumProperty` declarations in the matching block class.
+
 ## Licence
 
 MIT — see `LICENSE`.

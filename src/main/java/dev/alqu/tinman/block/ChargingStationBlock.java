@@ -21,7 +21,6 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
@@ -29,8 +28,14 @@ import org.jspecify.annotations.Nullable;
 public class ChargingStationBlock extends BaseEntityBlock {
 	public static final MapCodec<ChargingStationBlock> CODEC = simpleCodec(ChargingStationBlock::new);
 
-	/** True while the station is actually pushing energy into something. */
-	public static final BooleanProperty ACTIVE = BlockStateProperties.LIT;
+	/**
+	 * True while the station is actually pushing energy into something.
+	 *
+	 * <p>The property name here ("active") is what the blockstate JSON has to key its variants on,
+	 * so the two must be kept in step — a mismatch silently yields no matching variant and the
+	 * block renders as the missing model.
+	 */
+	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
 	public ChargingStationBlock(Properties properties) {
 		super(properties);
