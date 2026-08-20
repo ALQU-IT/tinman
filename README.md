@@ -180,6 +180,13 @@ firing never drains your flight reserve first.
 - **Pulse Gauntlet** — tap right-click to fire an energy bolt (damage plus knockback, short
   cooldown). Hold to charge a heavier shot that also sets off a small blast. The blast damages mobs
   but **never breaks blocks**, and can be switched off in the config.
+
+  It is a 3D model rather than a flat sprite, shaped as a sleeve that sits around the forearm, and
+  its held-hand display transforms slide it back off the fist so it reads as worn rather than
+  gripped. If the placement looks off in game, the numbers to nudge are
+  `display.thirdperson_righthand.translation` in
+  `assets/tinman/models/item/pulse_gauntlet.json`: the second value slides it along the arm, the
+  third moves it toward or away from the elbow.
 - **Voltite Blade** — sword tier between diamond and netherite (3.5 damage bonus, 1900 durability).
   Deals bonus damage while you have charge to spend, with electric sparks on hit.
 
