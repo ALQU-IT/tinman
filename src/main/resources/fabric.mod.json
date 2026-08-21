@@ -11,10 +11,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "dev.alqu.tinman.TinMan"
+      "it.alqu.tinman.TinMan"
     ],
     "client": [
-      "dev.alqu.tinman.client.TinManClient"
+      "it.alqu.tinman.client.TinManClient"
     ]
   },
   "depends": {

@@ -297,7 +297,7 @@ have meant a second source of truth that could drift.
 ### Layout
 
 ```
-src/main/java/dev/alqu/tinman/
+src/main/java/it/alqu/tinman/
 ├── advancement/   custom flight-distance criterion + persistent attachment
 ├── block/         Assembler and Charging Station blocks and block entities
 ├── component/     the tinman:energy data component
