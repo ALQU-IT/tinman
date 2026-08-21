@@ -28,12 +28,13 @@ import net.minecraft.world.phys.AABB;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * Burns Voltite Ingots into an energy buffer and trickles that buffer into any gear it can reach:
+ * Burns Voltite Ingots into an energy buffer and pours that buffer into any gear it can reach:
  * the four items in its own slots, and the suits worn by players standing nearby.
+ *
+ * <p>Since the Assembler stopped charging, this is the only way to put energy into gear.
  */
 public class ChargingStationBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 	public static final int FUEL_SLOT = 0;
@@ -165,16 +166,15 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 		}
 
 		entity.chargeCarry += Math.max(0, config.suit.chargingStationRate) / 20.0;
-		int budget = (int) entity.chargeCarry;
-		entity.chargeCarry -= budget;
-		budget = Math.min(budget, entity.stored);
+		int perTarget = (int) entity.chargeCarry;
+		entity.chargeCarry -= perTarget;
 
-		if (budget <= 0) {
+		if (perTarget <= 0) {
 			entity.updateActiveState(serverLevel, pos, state, false);
 			return;
 		}
 
-		int spent = entity.distribute(serverLevel, pos, budget);
+		int spent = entity.distribute(serverLevel, pos, perTarget);
 
 		if (spent > 0) {
 			entity.stored -= spent;
@@ -187,17 +187,15 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 	/**
 	 * Feeds the gear slots first, then any suits worn within {@link #RANGE}.
 	 *
-	 * <p>Within each of those two groups the budget is split evenly, so a whole suit sitting in
-	 * the slots fills together rather than one piece at a time.
+	 * <p>The rate is per target, not a pot shared between them: everything in reach charges at
+	 * full speed at the same time, and the buffer simply drains proportionally faster. Splitting
+	 * one budget would have meant a full suit in the slots charging a quarter as fast as a lone
+	 * battery, which is the opposite of what a charging station is for.
 	 */
-	private int distribute(ServerLevel level, BlockPos pos, int budget) {
+	private int distribute(ServerLevel level, BlockPos pos, int perTarget) {
 		int offset = this.spreadCursor++;
-		int spent = spreadEvenly(this.gearTargets(), budget, offset);
-
-		if (spent < budget) {
-			spent += spreadEvenly(this.wornTargets(level, pos), budget - spent, offset);
-		}
-
+		int spent = charge(this.gearTargets(), perTarget, this.stored, offset);
+		spent += charge(this.wornTargets(level, pos), perTarget, this.stored - spent, offset);
 		return spent;
 	}
 
@@ -222,44 +220,31 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 	}
 
 	/**
-	 * Charges every target at the same time by handing each an equal share of the budget.
+	 * Gives every target its own full tick's worth, until the buffer runs out.
 	 *
-	 * <p>Runs in passes: anything that fills up drops out and its unused share is re-split among
-	 * whatever still has room, so no energy is stranded on an almost-full piece.
-	 *
+	 * @param perTarget energy each target is offered this tick
+	 * @param available what is left in the buffer for this group
 	 * @return how much was actually spent
 	 */
-	private static int spreadEvenly(List<ItemStack> targets, int budget, int offset) {
+	private static int charge(List<ItemStack> targets, int perTarget, int available, int offset) {
 		targets.removeIf(stack -> !Energy.stores(stack) || Energy.get(stack) >= Energy.max());
 
-		if (targets.isEmpty()) {
+		if (targets.isEmpty() || available <= 0) {
 			return 0;
 		}
 
-		// Shift the starting point each tick so the remainder of an uneven split lands on a
-		// different piece every time, instead of always favouring the first one.
+		// When the buffer cannot cover everyone, whoever misses out should be a different piece
+		// each tick rather than always the last one in the list.
 		Collections.rotate(targets, -Math.floorMod(offset, targets.size()));
 
 		int spent = 0;
 
-		while (spent < budget && !targets.isEmpty()) {
-			// At least 1 apiece, so a budget smaller than the group still makes progress.
-			int share = Math.max(1, (budget - spent) / targets.size());
-			int before = spent;
-
-			for (Iterator<ItemStack> it = targets.iterator(); it.hasNext() && spent < budget; ) {
-				ItemStack stack = it.next();
-				spent += Energy.charge(stack, Math.min(share, budget - spent));
-
-				if (Energy.get(stack) >= Energy.max()) {
-					it.remove();
-				}
-			}
-
-			if (spent == before) {
-				// Nothing could take any more; stop rather than spin.
+		for (ItemStack stack : targets) {
+			if (spent >= available) {
 				break;
 			}
+
+			spent += Energy.charge(stack, Math.min(perTarget, available - spent));
 		}
 
 		return spent;

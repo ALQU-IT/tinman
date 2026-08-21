@@ -173,8 +173,7 @@ hoppers** — fed from above, powered from the sides, results pulled from below.
 hopper are spread across the grid rather than piled into one slot, so multi-slot recipes can be
 automated.
 
-Leaving a **single** piece of energy gear in the grid with ingots in the power cell recharges it
-instead of crafting; once full it is ejected to the output slot.
+The Assembler **builds** gear; it does not charge it. Recharging belongs to the Charging Station.
 
 ### The Tin Man suit
 
@@ -230,15 +229,17 @@ your inventory — so does everything else powered in the mod.
 Individual pieces worn alone give protection only.
 
 **Recharging** — batteries are the only thing that holds a charge, so they are the only thing you
-recharge. Either put one in the Assembler with ingots in the power cell, or use the
-**Charging Station**, which burns ingots into a buffer and trickles it into its own four gear slots
-and any suit worn within four blocks.
+recharge, and the **Charging Station** is the only thing that recharges them. It burns Voltite
+Ingots into a buffer and pours that buffer into its own four gear slots and any suit worn within
+four blocks.
 
-The Station charges **everything at once** rather than one item at a time: the per-tick energy
-budget is split evenly across every piece that still has room, so dropping a whole suit into its
-four slots fills all four in lockstep. Anything that fills up drops out and its share is re-split
-among the rest. Gear in the slots is served first; whatever budget is left over goes to suits worn
-nearby.
+`chargingStationRate` is **per target, not a shared pot**: everything in reach charges at the full
+1250 energy/second at the same time, and the buffer just drains proportionally faster. Dropping a
+whole suit into the four slots fills all four at full speed rather than a quarter each. Gear in the
+slots is served first; whatever the buffer has left goes to suits worn nearby, and when it cannot
+cover everyone the piece that misses out rotates each tick.
+
+Energy comes out of ingots one for one — 2500 energy per ingot, whatever it is charging.
 
 ### The Voltite Battery
 
@@ -269,8 +270,10 @@ firing never drains your flight reserve first.
   its held-hand display transforms slide it back off the fist so it reads as worn rather than
   gripped. If the placement looks off in game, the numbers to nudge are
   `display.thirdperson_righthand.translation` in
-  `assets/tinman/models/item/pulse_gauntlet.json`: the second value slides it along the arm, the
-  third moves it toward or away from the elbow.
+  `assets/tinman/models/item/pulse_gauntlet.json`. Vanilla hands the item a frame at the fist that
+  is rotated twice on the way there, so the axes are not the obvious ones: **X** moves it across
+  the arm, **Y** pushes it off the arm out in front of the player, and **Z** slides it up the arm
+  toward the elbow. A non-zero Y is what makes it float in front of the arm rather than wrap it.
 - **Voltite Blade** — a netherite sword lands 8 damage; this lands **31** (27.0 material bonus +
   the 3.0 sword baseline + the player's 1), on 6000 durability with a faster swing. Deals a
   further +15 while you have charge to spend, with electric sparks on hit.
@@ -363,7 +366,11 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - The mod loads with no errors; ore generates in the right Y band at the measured rate.
 - The Assembler crafts from its own recipe type, consuming the grid and the right number of
   power-cell ingots.
-- Recharging works both in the Assembler and the Charging Station, at the configured rate.
+- The Charging Station puts exactly the configured 1250 energy/second into **each** of three
+  batteries at once (2500 → 15000 over ten seconds, all three in lockstep) and burns 15 ingots
+  doing it, which is the energy delivered divided by 2500 with nothing lost or invented.
+- The Assembler no longer charges: a lone battery in its grid over ingots is untouched after ten
+  seconds, and the ingots are not consumed.
 - Batteries charge correctly, including enchanted ones, and Conservation reads back from the
   datapack registry at every level: a 100-energy action costs 100 / 85 / 70 / 55 at levels 0-3.
 - The config-sync packet round-trips all eleven fields unchanged with the buffer fully consumed,

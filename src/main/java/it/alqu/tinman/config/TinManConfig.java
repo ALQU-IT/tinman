@@ -27,7 +27,7 @@ public class TinManConfig {
 	 * would be worse than leaving them stale — but when the file is behind, the mod says so at
 	 * startup rather than letting a rebalance look like it did nothing.
 	 */
-	public static final int CURRENT_VERSION = 5;
+	public static final int CURRENT_VERSION = 6;
 
 	public int configVersion = CURRENT_VERSION;
 
@@ -76,8 +76,12 @@ public class TinManConfig {
 		public double boostDrainMultiplier = 3.0;
 		/** Extra velocity applied per tick while sprint-boosting. */
 		public double boostSpeed = 0.085;
-		/** Energy added per second by the Charging Station, per piece. */
-		public int chargingStationRate = 100;
+		/**
+		 * Energy the Charging Station adds per second, to every piece it is charging at once.
+		 * The default is 1.5x what the Assembler used to manage on a single item before it
+		 * stopped charging at all (one 2500-energy ingot per 60-tick cycle, so 833/second).
+		 */
+		public int chargingStationRate = 1250;
 		/** Energy a single Voltite Ingot is worth when used to recharge gear. */
 		public int energyPerIngot = 2500;
 	}
