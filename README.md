@@ -52,7 +52,9 @@ automatically after an update. Server-side values are authoritative.
 > **Upgrading from an earlier build:** values already in your `config/tinman.json` are kept, by
 > design — only genuinely new keys are added. That means a rebalance of existing keys does **not**
 > reach a world you have already run. To pick up new defaults, delete `config/tinman.json` and let
-> it regenerate, or edit the individual numbers by hand.
+> it regenerate, or edit the individual numbers by hand. The file carries a `configVersion`,
+> and the mod logs a warning at startup when yours is behind the build, so a rebalance never
+> silently looks like it did nothing.
 
 ```jsonc
 {
@@ -61,11 +63,11 @@ automatically after an update. Server-side values are authoritative.
     "voltiteVeinsPerChunk": 3.5   // fractional values work: 3.5 = three veins plus a coin flip
   },
   "suit": {
-    "batteryCapacity": 100000,
+    "batteryCapacity": 250000,
     "conservationPerLevel": 0.15,   // energy discount per Conservation level
     "unibeamEnabled": true,
-    "unibeamDamage": 25.0,
-    "unibeamRange": 24.0,
+    "unibeamDamage": 50.0,
+    "unibeamRange": 32.0,
     "unibeamEnergyCost": 400,
     "unibeamCooldownTicks": 40,           // per armour piece
     "flightEnabled": true,
@@ -76,8 +78,8 @@ automatically after an update. Server-side values are authoritative.
     "energyPerIngot": 2500        // what one Voltite Ingot is worth
   },
   "weapons": {
-    "pulseDamage": 18.0,
-    "chargedPulseDamage": 45.0,
+    "pulseDamage": 30.0,
+    "chargedPulseDamage": 90.0,
     "pulseEnergyCost": 25,
     "chargedPulseEnergyCost": 150,
     "pulseCooldownTicks": 2,          // 10 shots a second
@@ -85,12 +87,12 @@ automatically after an update. Server-side values are authoritative.
     "pulseVelocity": 3.2,
     "chargedPulseVelocity": 3.8,
     "chargedShotEnabled": true,
-    "chargedShotExplosionRadius": 5.0,
+    "chargedShotExplosionRadius": 7.0,
     "chargedShotBreaksBlocks": true,
     "blockLaunchChance": 0.45,        // share of broken blocks thrown as debris
     "blockLaunchPower": 0.55,
-    "maxLaunchedBlocks": 90,          // per blast, so a big radius cannot flood the server
-    "bladeEnergyBonusDamage": 9.0,
+    "maxLaunchedBlocks": 140,          // per blast, so a big radius cannot flood the server
+    "bladeEnergyBonusDamage": 15.0,
     "bladeEnergyCostPerHit": 15
   }
 }
@@ -114,8 +116,8 @@ Smelt or blast Raw Voltite (or the ore) into a **Voltite Ingot**. Nine nuggets m
 ingots make a **Block of Voltite** (which glows faintly at light level 4).
 
 **Tools** — Voltite Pickaxe, Axe, Shovel and Hoe are crafted in a **normal crafting table**. They
-are deliberately overpowered: netherite mining tier, speed 24 (netherite is 9), 4200 durability
-and +6 attack damage.
+are deliberately overpowered: netherite mining tier, speed 32 (netherite is 9), 6000 durability
+and +10 attack damage.
 
 ### The Assembler
 
@@ -159,9 +161,27 @@ instead of crafting; once full it is ejected to the output slot.
 
 ### The Tin Man suit
 
-All four pieces are **Assembler-only**. Protection lands between diamond and netherite: 21 armour
-points (one above diamond), toughness 2.5 and 0.05 knockback resistance. They are enchantable,
-armour-trim compatible, and repaired with Voltite Ingots.
+All four pieces are **Assembler-only**, enchantable, armour-trim compatible, and repaired with
+Voltite Ingots.
+
+The material is **exactly double netherite** on every defensive axis: 6/12/16/6 defence against
+netherite's 3/6/8/3, 6.0 toughness against 3.0, 0.2 knockback resistance against 0.1, on double
+the durability multiplier.
+
+Vanilla then clamps the armour attribute at 30 and toughness at 20, so a worn set reads **30 / 20 /
+0.8** in game against netherite's **20 / 12 / 0.4**. The clamp costs less than it looks, because
+the damage formula is
+`clamp(armour - damage / (2 + toughness / 4), armour * 0.2, 20) / 25`: the extra toughness is what
+keeps a big hit from dragging the armour term down. Netherite starts falling off the 80% reduction
+ceiling immediately; this holds it up to a 70-damage hit.
+
+| Incoming hit | Netherite takes | Tin Man takes |
+|---|---|---|
+| 10 | 2.8 | **2.0** |
+| 20 | 7.2 | **4.0** |
+| 40 | 20.8 | **8.0** |
+| 70 | 53.2 | **14.0** |
+| 100 | 84.0 | **37.1** |
 
 The suit stores no energy itself. Its abilities run off a **Voltite Battery** carried anywhere in
 your inventory — so does everything else powered in the mod.
@@ -225,9 +245,9 @@ firing never drains your flight reserve first.
   `display.thirdperson_righthand.translation` in
   `assets/tinman/models/item/pulse_gauntlet.json`: the second value slides it along the arm, the
   third moves it toward or away from the elbow.
-- **Voltite Blade** — deliberately overpowered: +12 base damage bonus (netherite is 4), 4500
-  durability, and a faster swing. Deals a further +9 while you have charge to spend, with electric
-  sparks on hit.
+- **Voltite Blade** — a netherite sword lands 8 damage; this lands **31** (27.0 material bonus +
+  the 3.0 sword baseline + the player's 1), on 6000 durability with a faster swing. Deals a
+  further +15 while you have charge to spend, with electric sparks on hit.
 
 ### Advancements
 
@@ -298,6 +318,8 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - Recharging works both in the Assembler and the Charging Station, at the configured rate.
 - Batteries charge correctly, including enchanted ones, and Conservation reads back from the
   datapack registry at every level: a 100-energy action costs 100 / 85 / 70 / 55 at levels 0-3.
+- Worn on a mob and read back with `/attribute`, the suit reports 30 armour / 20 toughness /
+  0.8 knockback resistance against netherite's 20 / 12 / 0.4.
 - The unibeam damages every target along its line, leaves entities off the line alone, and stops
   at terrain: two mobs in line both took the hit, one off to the side and one behind a wall took
   nothing, and the trace ended at the wall rather than its full range.

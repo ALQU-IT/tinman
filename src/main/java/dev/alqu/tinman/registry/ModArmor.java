@@ -28,23 +28,30 @@ public final class ModArmor {
 		ResourceKey.create(EquipmentAssets.ROOT_ID, TinMan.id("tin_man"));
 
 	/**
-	 * Armour points come out one above diamond (21 vs 20) while toughness and knockback resistance
-	 * sit between diamond and netherite, so the suit protects a little better than diamond without
-	 * reaching netherite.
+	 * Exactly double netherite on every defensive axis.
+	 *
+	 * <p>Netherite is 3/6/8/3 defence (20 points), 3.0 toughness and 0.1 knockback resistance per
+	 * piece; this is 6/12/16/6 (40 points), 6.0 and 0.2, on double the durability multiplier.
+	 *
+	 * <p>Vanilla clamps the armour attribute at 30 and toughness at 20, so a full set reads 30 and
+	 * 20 in game rather than 40 and 24. The excess is not wasted: the damage formula subtracts
+	 * {@code damage / (2 + toughness / 4)} from the armour value before capping the result at 20,
+	 * so the extra toughness is what keeps very large hits pinned at the 80% reduction ceiling
+	 * instead of falling away from it.
 	 */
 	public static final ArmorMaterial TIN_MAN_MATERIAL = new ArmorMaterial(
-		40,
+		74,
 		Map.of(
-			ArmorType.BOOTS, 3,
-			ArmorType.LEGGINGS, 6,
-			ArmorType.CHESTPLATE, 8,
-			ArmorType.HELMET, 4,
-			ArmorType.BODY, 11
+			ArmorType.BOOTS, 6,
+			ArmorType.LEGGINGS, 12,
+			ArmorType.CHESTPLATE, 16,
+			ArmorType.HELMET, 6,
+			ArmorType.BODY, 38
 		),
-		16,
+		30,
 		SoundEvents.ARMOR_EQUIP_NETHERITE,
-		2.5F,
-		0.05F,
+		6.0F,
+		0.2F,
 		REPAIRS_TIN_MAN_ARMOR,
 		TIN_MAN_ASSET
 	);

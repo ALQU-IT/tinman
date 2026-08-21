@@ -18,6 +18,17 @@ import java.nio.file.Path;
  * consulted for presentation (bar colours, HUD thresholds).
  */
 public class TinManConfig {
+	/**
+	 * Bumped whenever the shipped defaults change in a way players would want.
+	 *
+	 * <p>An existing file's values are always kept — silently rewriting numbers someone chose
+	 * would be worse than leaving them stale — but when the file is behind, the mod says so at
+	 * startup rather than letting a rebalance look like it did nothing.
+	 */
+	public static final int CURRENT_VERSION = 3;
+
+	public int configVersion = CURRENT_VERSION;
+
 	public Worldgen worldgen = new Worldgen();
 	public Suit suit = new Suit();
 	public Weapons weapons = new Weapons();
@@ -34,16 +45,16 @@ public class TinManConfig {
 	}
 
 	public static class Suit {
-		/** Maximum energy any single armour piece can hold. */
-		public int batteryCapacity = 100000;
+		/** Maximum energy a single Voltite Battery can hold. */
+		public int batteryCapacity = 250000;
 		/** Fraction of the energy cost each level of Conservation removes. */
 		public double conservationPerLevel = 0.15;
 		/** Whether the full set's chest-mounted unibeam is available. */
 		public boolean unibeamEnabled = true;
 		/** Damage the unibeam deals to everything it passes through. */
-		public double unibeamDamage = 25.0;
+		public double unibeamDamage = 50.0;
 		/** How far the unibeam reaches, in blocks. */
-		public double unibeamRange = 24.0;
+		public double unibeamRange = 32.0;
 		/** Energy the unibeam draws per shot, before Conservation. */
 		public int unibeamEnergyCost = 400;
 		/** Ticks before the unibeam can fire again. */
@@ -64,9 +75,9 @@ public class TinManConfig {
 
 	public static class Weapons {
 		/** Damage dealt by an uncharged Pulse Gauntlet bolt. */
-		public double pulseDamage = 18.0;
+		public double pulseDamage = 30.0;
 		/** Damage dealt by a fully charged Pulse Gauntlet bolt. */
-		public double chargedPulseDamage = 45.0;
+		public double chargedPulseDamage = 90.0;
 		/** Energy consumed per uncharged shot. */
 		public int pulseEnergyCost = 25;
 		/** Energy consumed per charged shot. */
@@ -82,7 +93,7 @@ public class TinManConfig {
 		/** Whether the charged shot (and its explosion) is enabled. */
 		public boolean chargedShotEnabled = true;
 		/** Radius of the charged shot's explosion. */
-		public double chargedShotExplosionRadius = 5.0;
+		public double chargedShotExplosionRadius = 7.0;
 		/** Whether the charged shot's explosion tears up terrain. */
 		public boolean chargedShotBreaksBlocks = true;
 		/** Fraction of the blocks it breaks that are thrown outward instead of just dropping. */
@@ -90,9 +101,9 @@ public class TinManConfig {
 		/** How hard thrown blocks are flung. */
 		public double blockLaunchPower = 0.55;
 		/** Cap on thrown blocks per blast, so a big radius cannot flood the server with entities. */
-		public int maxLaunchedBlocks = 90;
+		public int maxLaunchedBlocks = 140;
 		/** Bonus damage the Voltite Blade deals while the wielder has energy available. */
-		public double bladeEnergyBonusDamage = 9.0;
+		public double bladeEnergyBonusDamage = 15.0;
 		/** Energy consumed by the Blade per empowered hit. */
 		public int bladeEnergyCostPerHit = 15;
 	}
@@ -121,6 +132,14 @@ public class TinManConfig {
 				TinManConfig parsed = GSON.fromJson(json, TinManConfig.class);
 
 				if (parsed != null) {
+					if (parsed.configVersion < CURRENT_VERSION) {
+						TinMan.LOGGER.warn(
+							"config/tinman.json was written for config version {} and this build ships version {}. "
+							+ "Your existing values are being kept, so any rebalanced defaults will NOT apply. "
+							+ "Delete the file to regenerate it with the new numbers.",
+							parsed.configVersion, CURRENT_VERSION);
+					}
+
 					// Re-save so that newly added fields appear in the file for the user to edit.
 					parsed.save();
 					return parsed;

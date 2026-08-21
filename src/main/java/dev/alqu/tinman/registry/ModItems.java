@@ -33,10 +33,10 @@ public final class ModItems {
 	/** Deliberately overpowered: well past netherite on every axis. */
 	public static final ToolMaterial VOLTITE_TOOL_MATERIAL = new ToolMaterial(
 		BlockTags.INCORRECT_FOR_NETHERITE_TOOL,
-		4200,
-		24.0F,
-		6.0F,
-		28,
+		6000,
+		32.0F,
+		10.0F,
+		30,
 		REPAIRS_VOLTITE_TOOLS
 	);
 
