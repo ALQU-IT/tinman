@@ -2,6 +2,7 @@ package dev.alqu.tinman.client;
 
 import dev.alqu.tinman.TinMan;
 import dev.alqu.tinman.client.hud.SuitHudElement;
+import dev.alqu.tinman.client.input.ModKeys;
 import dev.alqu.tinman.client.particle.AssemblerSparkParticle;
 import dev.alqu.tinman.client.particle.ThrusterFlameParticle;
 import dev.alqu.tinman.client.screen.AssemblerScreen;
@@ -20,6 +21,8 @@ import net.minecraft.client.renderer.entity.NoopRenderer;
 public class TinManClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
+		ModKeys.register();
+
 		// The bolt is drawn entirely by the particle trail the server broadcasts, so the
 		// entity itself needs no model — but it still needs a renderer registered.
 		EntityRendererRegistry.register(ModEntities.PULSE_BOLT, NoopRenderer::new);

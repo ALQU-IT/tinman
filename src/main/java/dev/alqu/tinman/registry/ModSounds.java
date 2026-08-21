@@ -18,6 +18,8 @@ public final class ModSounds {
 	public static final SoundEvent THRUSTER_LOOP = register("thruster_loop");
 	/** Pulse Gauntlet discharge. */
 	public static final SoundEvent REPULSOR_FIRE = register("repulsor_fire");
+	/** Chest unibeam discharge. */
+	public static final SoundEvent UNIBEAM_FIRE = register("unibeam_fire");
 	/** Assembler drone while an assembly is running. */
 	public static final SoundEvent ASSEMBLER_HUM = register("assembler_hum");
 

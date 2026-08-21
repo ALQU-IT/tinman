@@ -62,7 +62,12 @@ automatically after an update. Server-side values are authoritative.
   },
   "suit": {
     "batteryCapacity": 100000,
-    "conservationPerLevel": 0.15,   // energy discount per Conservation level           // per armour piece
+    "conservationPerLevel": 0.15,   // energy discount per Conservation level
+    "unibeamEnabled": true,
+    "unibeamDamage": 25.0,
+    "unibeamRange": 24.0,
+    "unibeamEnergyCost": 400,
+    "unibeamCooldownTicks": 40,           // per armour piece
     "flightEnabled": true,
     "flightDrainPerSecond": 20,
     "boostDrainMultiplier": 3.0,
@@ -166,6 +171,10 @@ your inventory — so does everything else powered in the mod.
 - Creative-style flight, draining energy per second. Hold sprint while flying to boost — faster,
   costlier, with thruster flames from the boots.
 - Immunity to fall and fire damage.
+- A chest-mounted **unibeam**, fired with a key (**R** by default, rebindable in Controls). It
+  lances out from the chest, stops at the first solid block, and damages *everything* it passes
+  through rather than only the first target. Damage, range, energy cost, cooldown and the ability
+  itself are all config options.
 - Helmet HUD: energy bar (red below 15%), altitude, and the name and health of whatever your
   crosshair is on.
 - Night vision underwater and in the dark.
@@ -238,9 +247,12 @@ Energy consumption, flight permission, recipe matching and projectile logic are 
 permission through the vanilla abilities packet. Particles the player shouldn't be alone in seeing
 are broadcast from the server with `sendParticles`, so nearby players see the same thing.
 
-That means the mod deliberately ships **no custom packets** — every piece of state that has to
-cross the wire already has a synced vanilla carrier. Adding a bespoke packet alongside a synced
-data component would have created a second source of truth that could drift.
+The mod ships exactly **one custom packet**, for the unibeam, because a key press is the one piece
+of state the server genuinely cannot observe. It carries no data: the client only reports that the
+key was pressed, and the server decides on its own whether the suit is worn and charged, where the
+beam points, what it hits and what it costs — so a client cannot ask for a shot it has not earned.
+Everything else still rides a synced vanilla carrier rather than a bespoke packet, which would
+have meant a second source of truth that could drift.
 
 ### Layout
 
@@ -286,6 +298,9 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - Recharging works both in the Assembler and the Charging Station, at the configured rate.
 - Batteries charge correctly, including enchanted ones, and Conservation reads back from the
   datapack registry at every level: a 100-energy action costs 100 / 85 / 70 / 55 at levels 0-3.
+- The unibeam damages every target along its line, leaves entities off the line alone, and stops
+  at terrain: two mobs in line both took the hit, one off to the side and one behind a wall took
+  nothing, and the trace ended at the wall rather than its full range.
 - The Assembler still crafts correctly after its menu moved onto RecipeBookMenu, and the 23
   recipe-unlock advancements load (1692 -> 1715 advancements).
 - A full suit in the Charging Station's four slots charges in lockstep — all four pieces read

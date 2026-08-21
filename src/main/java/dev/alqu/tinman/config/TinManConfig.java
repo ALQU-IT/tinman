@@ -38,6 +38,16 @@ public class TinManConfig {
 		public int batteryCapacity = 100000;
 		/** Fraction of the energy cost each level of Conservation removes. */
 		public double conservationPerLevel = 0.15;
+		/** Whether the full set's chest-mounted unibeam is available. */
+		public boolean unibeamEnabled = true;
+		/** Damage the unibeam deals to everything it passes through. */
+		public double unibeamDamage = 25.0;
+		/** How far the unibeam reaches, in blocks. */
+		public double unibeamRange = 24.0;
+		/** Energy the unibeam draws per shot, before Conservation. */
+		public int unibeamEnergyCost = 400;
+		/** Ticks before the unibeam can fire again. */
+		public int unibeamCooldownTicks = 40;
 		/** Whether the full-set creative flight ability is available at all. */
 		public boolean flightEnabled = true;
 		/** Energy drained per second of flight, split across the four worn pieces. */

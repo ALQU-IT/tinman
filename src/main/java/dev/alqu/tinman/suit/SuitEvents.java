@@ -73,6 +73,7 @@ public final class SuitEvents {
 			UUID id = handler.getPlayer().getUUID();
 			granted.remove(id);
 			drainCarry.remove(id);
+			Unibeam.forget(id);
 		});
 	}
 

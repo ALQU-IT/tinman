@@ -6,6 +6,7 @@ import dev.alqu.tinman.component.ModComponents;
 import dev.alqu.tinman.recipe.ModRecipes;
 import dev.alqu.tinman.registry.ModArmor;
 import dev.alqu.tinman.suit.SuitEvents;
+import dev.alqu.tinman.suit.Unibeam;
 import dev.alqu.tinman.registry.ModBlockEntities;
 import dev.alqu.tinman.registry.ModBlocks;
 import dev.alqu.tinman.registry.ModEntities;
@@ -42,6 +43,7 @@ public class TinMan implements ModInitializer {
 		ModRecipes.init();
 		ModMenus.init();
 		SuitEvents.register();
+		Unibeam.register();
 		ModItemGroup.init();
 		ModWorldGen.init();
 

@@ -48,5 +48,15 @@
         "stream": false
       }
     ]
+  },
+  "unibeam_fire": {
+    "category": "player",
+    "subtitle": "subtitles.tinman.unibeam_fire",
+    "sounds": [
+      {
+        "name": "tinman:unibeam_fire",
+        "stream": false
+      }
+    ]
   }
 }
