@@ -2,7 +2,6 @@ package it.alqu.tinman.menu;
 
 import it.alqu.tinman.block.ChargingStationBlockEntity;
 import it.alqu.tinman.item.Energy;
-import it.alqu.tinman.registry.ModItems;
 import it.alqu.tinman.registry.ModMenus;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -39,7 +38,7 @@ public class ChargingStationMenu extends AbstractContainerMenu {
 		this.addSlot(new Slot(container, FUEL_SLOT, 26, 35) {
 			@Override
 			public boolean mayPlace(ItemStack stack) {
-				return stack.is(ModItems.VOLTITE_INGOT);
+				return ChargingStationBlockEntity.fuelValue(stack) > 0;
 			}
 		});
 
@@ -85,7 +84,7 @@ public class ChargingStationMenu extends AbstractContainerMenu {
 			}
 
 			slot.onQuickCraft(stack, original);
-		} else if (stack.is(ModItems.VOLTITE_INGOT) && this.moveItemStackTo(stack, FUEL_SLOT, FUEL_SLOT + 1, false)) {
+		} else if (ChargingStationBlockEntity.fuelValue(stack) > 0 && this.moveItemStackTo(stack, FUEL_SLOT, FUEL_SLOT + 1, false)) {
 			// Fuel first.
 		} else if (Energy.stores(stack) && this.moveItemStackTo(stack, FIRST_GEAR, CONTAINER_END, false)) {
 			// Then anything chargeable.

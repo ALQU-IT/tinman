@@ -81,8 +81,8 @@ you are shown matches what the server actually runs even if your own file differ
     "flightDrainPerSecond": 20,
     "boostDrainMultiplier": 3.0,
     "boostSpeed": 0.085,
-    "chargingStationRate": 100,   // energy per second
-    "energyPerIngot": 2500        // what one Voltite Ingot is worth
+    "chargingStationRate": 1250,  // energy per second, to each thing it is charging at once
+    "energyPerIngot": 2500        // what one Voltite Ingot is worth; a block is nine of them
   },
   "weapons": {
     "pulseDamage": 30.0,
@@ -230,8 +230,12 @@ Individual pieces worn alone give protection only.
 
 **Recharging** — batteries are the only thing that holds a charge, so they are the only thing you
 recharge, and the **Charging Station** is the only thing that recharges them. It burns Voltite
-Ingots into a buffer and pours that buffer into its own four gear slots and any suit worn within
-four blocks.
+into a buffer and pours that buffer into its own four gear slots and any suit worn within four
+blocks.
+
+The fuel slot takes **Voltite Ingots or Blocks of Voltite**. A block is nine ingots, so it burns
+as nine ingots' worth — same energy per ingot, nine times as much of it in one slot, which is what
+you want if you are leaving a station running unattended.
 
 `chargingStationRate` is **per target, not a shared pot**: everything in reach charges at the full
 1250 energy/second at the same time, and the buffer just drains proportionally faster. Dropping a
@@ -239,7 +243,11 @@ whole suit into the four slots fills all four at full speed rather than a quarte
 slots is served first; whatever the buffer has left goes to suits worn nearby, and when it cannot
 cover everyone the piece that misses out rotates each tick.
 
-Energy comes out of ingots one for one — 2500 energy per ingot, whatever it is charging.
+Energy comes out of Voltite one for one — 2500 per ingot, 22500 per block, whatever it is
+charging. Fuel is opened one item at a time and trickled into a deliberately small buffer, so a
+station is never sitting on a block's worth of committed energy. Break one and it hands back
+whatever it was holding as whole ingots, buffer and part-burned fuel together, costing you only
+the rounding.
 
 ### The Voltite Battery
 
@@ -369,6 +377,10 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - The Charging Station puts exactly the configured 1250 energy/second into **each** of three
   batteries at once (2500 → 15000 over ten seconds, all three in lockstep) and burns 15 ingots
   doing it, which is the energy delivered divided by 2500 with nothing lost or invented.
+- A Block of Voltite burns as exactly 22500 energy: buffer plus part-burned remainder plus what
+  has already been delivered adds back up to 22500 at every sample.
+- Breaking a fuelled station returns the balance as ingots — a station holding 20000 across its
+  buffer and its part-burned block dropped 8 Voltite Ingots, alongside its contents.
 - The Assembler no longer charges: a lone battery in its grid over ingots is untouched after ten
   seconds, and the ingots are not consumed.
 - Batteries charge correctly, including enchanted ones, and Conservation reads back from the

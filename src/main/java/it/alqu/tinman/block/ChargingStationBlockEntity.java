@@ -4,6 +4,7 @@ import it.alqu.tinman.config.TinManConfig;
 import it.alqu.tinman.item.Energy;
 import it.alqu.tinman.menu.ChargingStationMenu;
 import it.alqu.tinman.registry.ModBlockEntities;
+import it.alqu.tinman.registry.ModBlocks;
 import it.alqu.tinman.registry.ModItems;
 import it.alqu.tinman.suit.SuitEvents;
 import net.minecraft.core.BlockPos;
@@ -12,6 +13,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -35,6 +37,10 @@ import java.util.List;
  * the four items in its own slots, and the suits worn by players standing nearby.
  *
  * <p>Since the Assembler stopped charging, this is the only way to put energy into gear.
+ *
+ * <p>Fuel is Voltite in either form. A Block of Voltite is nine ingots, so it burns as nine
+ * ingots' worth — feeding the station a stack of blocks rather than ingots is nine times the
+ * fuel in the same slot, and worth exactly the same per ingot.
  */
 public class ChargingStationBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 	public static final int FUEL_SLOT = 0;
@@ -52,8 +58,19 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 	private static final int[] SLOTS_FUEL = {FUEL_SLOT};
 	private static final int[] SLOTS_GEAR = {1, 2, 3, 4};
 
+	/** Ingots in a Block of Voltite, and so the ratio between their fuel values. */
+	private static final int INGOTS_PER_BLOCK = 9;
+
 	private NonNullList<ItemStack> items = NonNullList.withSize(CONTAINER_SIZE, ItemStack.EMPTY);
 	private int stored;
+	/**
+	 * Energy left in the fuel item currently being burned.
+	 *
+	 * <p>Fuel is opened into this and then trickled into the buffer, rather than dropped into the
+	 * buffer whole. Otherwise the buffer would have to be big enough to swallow a Block of
+	 * Voltite in one go, and a station holding that much would be an expensive thing to break.
+	 */
+	private int fuelRemainder;
 	/**
 	 * Fractional energy carried between ticks. Without this a rate that does not divide into 20
 	 * (anything under 20/second) truncates to zero every tick and the station silently never
@@ -97,6 +114,17 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 		return Math.max(1, TinManConfig.get().suit.energyPerIngot) * 2;
 	}
 
+	/** Energy one item of this stack is worth as fuel, or 0 if it does not burn here. */
+	public static int fuelValue(ItemStack stack) {
+		int perIngot = Math.max(1, TinManConfig.get().suit.energyPerIngot);
+
+		if (stack.is(ModItems.VOLTITE_INGOT)) {
+			return perIngot;
+		}
+
+		return stack.is(ModBlocks.VOLTITE_BLOCK.asItem()) ? perIngot * INGOTS_PER_BLOCK : 0;
+	}
+
 	public ContainerData getData() {
 		return this.data;
 	}
@@ -132,6 +160,7 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 		this.items = NonNullList.withSize(CONTAINER_SIZE, ItemStack.EMPTY);
 		ContainerHelper.loadAllItems(input, this.items);
 		this.stored = input.getIntOr("StoredEnergy", 0);
+		this.fuelRemainder = input.getIntOr("FuelRemainder", 0);
 	}
 
 	@Override
@@ -139,6 +168,7 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 		super.saveAdditional(output);
 		ContainerHelper.saveAllItems(output, this.items);
 		output.putInt("StoredEnergy", this.stored);
+		output.putInt("FuelRemainder", this.fuelRemainder);
 	}
 
 	public static void serverTick(Level level, BlockPos pos, BlockState state, ChargingStationBlockEntity entity) {
@@ -147,16 +177,8 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 		}
 
 		TinManConfig config = TinManConfig.get();
-		int perIngot = Math.max(1, config.suit.energyPerIngot);
 
-		// Top the buffer up from the fuel slot when there is room for a whole ingot.
-		ItemStack fuel = entity.items.get(FUEL_SLOT);
-
-		if (entity.stored + perIngot <= capacity() && fuel.is(ModItems.VOLTITE_INGOT)) {
-			fuel.shrink(1);
-			entity.stored += perIngot;
-			entity.setChanged();
-		}
+		entity.refuel();
 
 		if (entity.stored <= 0) {
 			// Don't bank carry while empty, or it would dump in one burst when fuel arrives.
@@ -182,6 +204,53 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 		}
 
 		entity.updateActiveState(serverLevel, pos, state, spent > 0);
+	}
+
+	/**
+	 * Opens the next fuel item once the last one is spent, then trickles it into the buffer.
+	 *
+	 * <p>An ingot and a Block of Voltite go through the same path; the block simply lasts nine
+	 * times as long, so nothing has to know how big a single fuel item is.
+	 */
+	private void refuel() {
+		if (this.fuelRemainder <= 0) {
+			ItemStack fuel = this.items.get(FUEL_SLOT);
+			int value = fuelValue(fuel);
+
+			if (value > 0) {
+				fuel.shrink(1);
+				this.fuelRemainder = value;
+				this.setChanged();
+			}
+		}
+
+		int room = capacity() - this.stored;
+
+		if (this.fuelRemainder > 0 && room > 0) {
+			int moved = Math.min(this.fuelRemainder, room);
+			this.fuelRemainder -= moved;
+			this.stored += moved;
+			this.setChanged();
+		}
+	}
+
+	/**
+	 * Hands back whatever energy the station was holding, as the ingots it came from, so breaking
+	 * a fuelled station costs you the rounding and nothing else.
+	 */
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		super.preRemoveSideEffects(pos, state);
+
+		int perIngot = Math.max(1, TinManConfig.get().suit.energyPerIngot);
+		int ingots = (this.stored + this.fuelRemainder) / perIngot;
+		this.stored = 0;
+		this.fuelRemainder = 0;
+
+		if (ingots > 0 && this.level != null) {
+			Containers.dropItemStack(this.level, pos.getX(), pos.getY(), pos.getZ(),
+				new ItemStack(ModItems.VOLTITE_INGOT, ingots));
+		}
 	}
 
 	/**
@@ -276,6 +345,6 @@ public class ChargingStationBlockEntity extends BaseContainerBlockEntity impleme
 
 	@Override
 	public boolean canPlaceItem(int slot, ItemStack stack) {
-		return slot == FUEL_SLOT ? stack.is(ModItems.VOLTITE_INGOT) : Energy.stores(stack);
+		return slot == FUEL_SLOT ? fuelValue(stack) > 0 : Energy.stores(stack);
 	}
 }
