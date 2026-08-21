@@ -208,8 +208,15 @@ your inventory — so does everything else powered in the mod.
   costlier, with thruster flames from the boots.
 - Immunity to fall and fire damage.
 - The suit **leans into the dive** as you pick up forward speed and eases back upright as you
-  slow, exactly the elytra pose. It eases both ways rather than snapping, and other players see
-  it too.
+  slow, exactly the elytra pose. It eases both ways rather than snapping, and it only happens
+  while you are genuinely flying — a sprint jump is airborne too, and leaning into one looked
+  ridiculous.
+
+  Other players see it, but by inference rather than by being told. Vanilla only sends a player
+  their *own* flight flag, so a remote client cannot know anyone else is flying and has to read
+  it off what does arrive: sustained time in the air (a jump is over inside about thirteen ticks)
+  and a vertical speed that is not a fall. For the player at their own client the flag is right
+  there, so their lean is exact.
 - A chest-mounted **unibeam**, fired with a key (**R** by default, rebindable in Controls). It
   lances out from the chest, stops at the first solid block, and damages *everything* it passes
   through rather than only the first target. Damage, range, energy cost, cooldown and the ability
