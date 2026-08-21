@@ -17,7 +17,7 @@ public final class Energy {
 	}
 
 	public static int max() {
-		return Math.max(1, TinManConfig.get().suit.maxEnergy);
+		return Math.max(1, TinManConfig.get().suit.batteryCapacity);
 	}
 
 	public static boolean stores(ItemStack stack) {

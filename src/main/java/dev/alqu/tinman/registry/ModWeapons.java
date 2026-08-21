@@ -1,7 +1,6 @@
 package dev.alqu.tinman.registry;
 
 import dev.alqu.tinman.TinMan;
-import dev.alqu.tinman.component.ModComponents;
 import dev.alqu.tinman.item.PulseGauntletItem;
 import dev.alqu.tinman.item.VoltiteBladeItem;
 import net.minecraft.core.registries.Registries;
@@ -29,16 +28,14 @@ public final class ModWeapons {
 
 	public static final Item VOLTITE_BLADE = ModItems.register("voltite_blade", VoltiteBladeItem::new,
 		new Item.Properties()
-			.sword(BLADE_MATERIAL, 3.0F, -1.8F)
-			.component(ModComponents.ENERGY, 0));
+			.sword(BLADE_MATERIAL, 3.0F, -1.8F));
 
 	public static final Item PULSE_GAUNTLET = ModItems.register("pulse_gauntlet", PulseGauntletItem::new,
 		new Item.Properties()
 			.stacksTo(1)
 			.durability(2048)
 			.repairable(REPAIRS_VOLTITE_WEAPONS)
-			.enchantable(28)
-			.component(ModComponents.ENERGY, 0));
+			.enchantable(28));
 
 	public static void init() {
 		// Class-load the holder so the static initialisers above run.

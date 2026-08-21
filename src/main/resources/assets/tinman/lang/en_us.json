@@ -14,6 +14,7 @@
   "block.tinman.voltite_ore": "Voltite Ore",
   "container.tinman.assembler": "Assembler",
   "container.tinman.charging_station": "Charging Station",
+  "enchantment.tinman.conservation": "Conservation",
   "entity.tinman.pulse_bolt": "Pulse Bolt",
   "gui.tinman.assembler.toggleRecipes": "Assemblable",
   "hud.tinman.altitude": "ALT %s",
@@ -27,6 +28,7 @@
   "item.tinman.tin_man_helmet": "Tin Man Helmet",
   "item.tinman.tin_man_leggings": "Tin Man Leggings",
   "item.tinman.voltite_axe": "Voltite Axe",
+  "item.tinman.voltite_battery": "Voltite Battery",
   "item.tinman.voltite_blade": "Voltite Blade",
   "item.tinman.voltite_hoe": "Voltite Hoe",
   "item.tinman.voltite_ingot": "Voltite Ingot",
@@ -50,10 +52,11 @@
   "tag.item.tinman.repairs_voltite_tools": "Repairs Voltite Tools",
   "tag.item.tinman.repairs_voltite_weapons": "Repairs Voltite Weapons",
   "tag.item.tinman.voltite_ores": "Voltite Ores",
+  "tooltip.tinman.battery_hint": "Powers Tin Man gear while carried",
   "tooltip.tinman.blade": "+%s damage while charged (%s energy per hit)",
-  "tooltip.tinman.durability": "Durability: %s / %s",
   "tooltip.tinman.energy": "Energy: %s / %s",
   "tooltip.tinman.gauntlet": "Bolt: %s damage, %s energy",
   "tooltip.tinman.gauntlet_charged": "Charged: %s damage, %s energy",
+  "tooltip.tinman.needs_battery": "Draws from a carried Voltite Battery",
   "tooltip.tinman.set_bonus": "Full set: flight, fall and fire immunity"
 }

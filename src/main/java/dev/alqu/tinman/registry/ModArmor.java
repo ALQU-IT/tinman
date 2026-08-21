@@ -1,7 +1,6 @@
 package dev.alqu.tinman.registry;
 
 import dev.alqu.tinman.TinMan;
-import dev.alqu.tinman.component.ModComponents;
 import dev.alqu.tinman.item.TinManArmorItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -57,9 +56,7 @@ public final class ModArmor {
 
 	private static Item register(String name, ArmorType type) {
 		return ModItems.register(name, TinManArmorItem::new,
-			new Item.Properties()
-				.humanoidArmor(TIN_MAN_MATERIAL, type)
-				.component(ModComponents.ENERGY, 0));
+			new Item.Properties().humanoidArmor(TIN_MAN_MATERIAL, type));
 	}
 
 	public static boolean isSuitPiece(ItemStack stack) {

@@ -61,7 +61,8 @@ automatically after an update. Server-side values are authoritative.
     "voltiteVeinsPerChunk": 3.5   // fractional values work: 3.5 = three veins plus a coin flip
   },
   "suit": {
-    "maxEnergy": 10000,           // per armour piece
+    "batteryCapacity": 100000,
+    "conservationPerLevel": 0.15,   // energy discount per Conservation level           // per armour piece
     "flightEnabled": true,
     "flightDrainPerSecond": 20,
     "boostDrainMultiplier": 3.0,
@@ -157,9 +158,8 @@ All four pieces are **Assembler-only**. Protection lands between diamond and net
 points (one above diamond), toughness 2.5 and 0.05 knockback resistance. They are enchantable,
 armour-trim compatible, and repaired with Voltite Ingots.
 
-Each piece stores up to 10,000 energy in a `tinman:energy` data component, so charge survives
-death, chests, and multiplayer. The bar under the icon shows **energy**; the tooltip spells out
-durability separately so nothing is hidden.
+The suit stores no energy itself. Its abilities run off a **Voltite Battery** carried anywhere in
+your inventory — so does everything else powered in the mod.
 
 **Full set with charge remaining:**
 
@@ -174,7 +174,8 @@ durability separately so nothing is hidden.
 
 Individual pieces worn alone give protection only.
 
-**Recharging** — either put a piece in the Assembler with ingots in the power cell, or use the
+**Recharging** — batteries are the only thing that holds a charge, so they are the only thing you
+recharge. Either put one in the Assembler with ingots in the power cell, or use the
 **Charging Station**, which burns ingots into a buffer and trickles it into its own four gear slots
 and any suit worn within four blocks.
 
@@ -183,6 +184,19 @@ budget is split evenly across every piece that still has room, so dropping a who
 four slots fills all four in lockstep. Anything that fills up drops out and its share is re-split
 among the rest. Gear in the slots is served first; whatever budget is left over goes to suits worn
 nearby.
+
+### The Voltite Battery
+
+One item holds all the energy in the mod. Craft it in a normal crafting table (iron, Voltite
+Ingots and a redstone block), charge it, and carry it; the suit and both weapons draw from any
+battery in your inventory. It holds 100,000 by default, stored in a `tinman:energy` data
+component so charge survives death, chests and multiplayer.
+
+**Conservation** (I–III) is a custom enchantment for batteries, obtainable at an enchanting table.
+Each level takes 15% off the energy every action costs, so a 100-energy action costs 85, 70 or 55.
+When several batteries are carried, the highest Conservation level among them applies — taking the
+best rather than whichever battery happens to drain first keeps a given action costing the same
+regardless of how your inventory is ordered.
 
 ### Weapons
 
@@ -270,6 +284,8 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - The Assembler crafts from its own recipe type, consuming the grid and the right number of
   power-cell ingots.
 - Recharging works both in the Assembler and the Charging Station, at the configured rate.
+- Batteries charge correctly, including enchanted ones, and Conservation reads back from the
+  datapack registry at every level: a 100-energy action costs 100 / 85 / 70 / 55 at levels 0-3.
 - The Assembler still crafts correctly after its menu moved onto RecipeBookMenu, and the 23
   recipe-unlock advancements load (1692 -> 1715 advancements).
 - A full suit in the Charging Station's four slots charges in lockstep — all four pieces read

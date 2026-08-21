@@ -3,6 +3,7 @@ package dev.alqu.tinman.suit;
 import dev.alqu.tinman.advancement.ModTriggers;
 import dev.alqu.tinman.config.TinManConfig;
 import dev.alqu.tinman.item.Energy;
+import dev.alqu.tinman.item.Power;
 import dev.alqu.tinman.registry.ModArmor;
 import dev.alqu.tinman.registry.ModParticles;
 import dev.alqu.tinman.registry.ModSounds;
@@ -97,63 +98,35 @@ public final class SuitEvents {
 
 	/** True when the full set is worn and it still has charge: the condition for every ability. */
 	public static boolean isSuitActive(LivingEntity entity) {
-		return isFullSet(entity) && Energy.total(suitPieces(entity)) > 0;
+		return isFullSet(entity) && Power.available(entity) > 0;
 	}
 
 	/**
-	 * Spends energy on behalf of a powered weapon.
-	 *
-	 * <p>The held item's own charge goes first so that firing does not eat the flight reserve;
-	 * only once the weapon is empty does it fall back to the worn suit.
+	 * Spends energy on behalf of a powered weapon, from the carried batteries.
 	 *
 	 * @return true if the full amount was paid
 	 */
 	public static boolean drawPower(LivingEntity entity, ItemStack held, int amount) {
-		if (amount <= 0) {
-			return true;
-		}
-
-		if (Energy.stores(held) && Energy.get(held) >= amount) {
-			Energy.drain(held, amount);
-			return true;
-		}
-
-		if (isFullSet(entity)) {
-			List<ItemStack> pieces = suitPieces(entity);
-
-			if (Energy.total(pieces) >= amount) {
-				Energy.drainSpread(pieces, amount);
-				return true;
-			}
-		}
-
-		return false;
+		return Power.pay(entity, amount);
 	}
 
-	/** How much energy a weapon could spend right now, from itself or the suit. */
+	/** How much energy is on hand for a weapon right now. */
 	public static int availablePower(LivingEntity entity, ItemStack held) {
-		int available = Energy.stores(held) ? Energy.get(held) : 0;
-
-		if (isFullSet(entity)) {
-			available += Energy.total(suitPieces(entity));
-		}
-
-		return available;
+		return Power.available(entity);
 	}
 
 	private static void tickPlayer(ServerPlayer player) {
 		TinManConfig config = TinManConfig.get();
-		List<ItemStack> pieces = suitPieces(player);
-		boolean active = isFullSet(player) && Energy.total(pieces) > 0;
+		boolean active = isFullSet(player) && Power.available(player) > 0;
 
-		handleFlight(player, config, pieces, active);
+		handleFlight(player, config, active);
 
 		if (active) {
 			handleVision(player);
 		}
 	}
 
-	private static void handleFlight(ServerPlayer player, TinManConfig config, List<ItemStack> pieces, boolean active) {
+	private static void handleFlight(ServerPlayer player, TinManConfig config, boolean active) {
 		UUID id = player.getUUID();
 		Abilities abilities = player.getAbilities();
 
@@ -175,7 +148,7 @@ public final class SuitEvents {
 			}
 
 			if (abilities.flying) {
-				drainForFlight(player, config, pieces);
+				drainForFlight(player, config);
 				trackFlightDistance(player);
 			}
 
@@ -183,7 +156,7 @@ public final class SuitEvents {
 		}
 
 		if (granted.remove(id)) {
-			// Out of charge (or flight switched off): cut out immediately.
+			// Out of battery (or flight switched off): cut out immediately.
 			abilities.mayfly = false;
 			abilities.flying = false;
 			player.onUpdateAbilities();
@@ -209,7 +182,7 @@ public final class SuitEvents {
 		ModTriggers.SUIT_FLIGHT.trigger(player, total);
 	}
 
-	private static void drainForFlight(ServerPlayer player, TinManConfig config, List<ItemStack> pieces) {
+	private static void drainForFlight(ServerPlayer player, TinManConfig config) {
 		boolean boosting = player.isSprinting();
 		double perSecond = Math.max(0, config.suit.flightDrainPerSecond);
 
@@ -224,7 +197,7 @@ public final class SuitEvents {
 		drainCarry.put(id, carry - whole);
 
 		if (whole > 0) {
-			Energy.drainSpread(pieces, whole);
+			Power.pay(player, whole);
 		}
 	}
 

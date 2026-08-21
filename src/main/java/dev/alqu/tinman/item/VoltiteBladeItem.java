@@ -1,6 +1,7 @@
 package dev.alqu.tinman.item;
 
 import dev.alqu.tinman.config.TinManConfig;
+import dev.alqu.tinman.item.Power;
 import dev.alqu.tinman.suit.SuitEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
@@ -25,7 +26,7 @@ import java.util.function.Consumer;
  * <p>The bonus is applied in {@link #getAttackDamageBonus} so it folds into the normal damage
  * calculation, and the energy is actually spent in {@link #postHurtEnemy} once the hit has landed.
  */
-public class VoltiteBladeItem extends Item implements Energy.EnergyStoring {
+public class VoltiteBladeItem extends Item {
 	private static final int BAR_COLOUR = 0x3FE0E8;
 
 	public VoltiteBladeItem(Properties properties) {
@@ -47,8 +48,9 @@ public class VoltiteBladeItem extends Item implements Energy.EnergyStoring {
 			return bonus;
 		}
 
-		// Only promise the bonus if the energy is actually there to pay for it.
-		if (SuitEvents.availablePower(attacker, weapon) >= config.bladeEnergyCostPerHit) {
+		// Only promise the bonus if the energy is actually there to pay for it, at the
+		// Conservation-discounted price the hit will really be charged.
+		if (Power.canPay(attacker, config.bladeEnergyCostPerHit)) {
 			return bonus + (float) config.bladeEnergyBonusDamage;
 		}
 
@@ -75,29 +77,14 @@ public class VoltiteBladeItem extends Item implements Energy.EnergyStoring {
 	}
 
 	@Override
-	public boolean isBarVisible(ItemStack stack) {
-		return true;
-	}
-
-	@Override
-	public int getBarWidth(ItemStack stack) {
-		return Math.round(Energy.get(stack) * 13.0F / Energy.max());
-	}
-
-	@Override
-	public int getBarColor(ItemStack stack) {
-		return BAR_COLOUR;
-	}
-
-	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
 			Consumer<Component> tooltip, TooltipFlag flag) {
 		super.appendHoverText(stack, context, display, tooltip, flag);
 
 		TinManConfig.Weapons config = TinManConfig.get().weapons;
 
-		tooltip.accept(Component.translatable("tooltip.tinman.energy", Energy.get(stack), Energy.max())
-			.withStyle(ChatFormatting.AQUA));
+		tooltip.accept(Component.translatable("tooltip.tinman.needs_battery")
+			.withStyle(ChatFormatting.DARK_GRAY));
 		tooltip.accept(Component.translatable("tooltip.tinman.blade",
 				String.format("%.1f", config.bladeEnergyBonusDamage), config.bladeEnergyCostPerHit)
 			.withStyle(ChatFormatting.DARK_GRAY));

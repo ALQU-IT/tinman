@@ -1,6 +1,8 @@
 package dev.alqu.tinman.registry;
 
 import dev.alqu.tinman.TinMan;
+import dev.alqu.tinman.component.ModComponents;
+import dev.alqu.tinman.item.VoltiteBatteryItem;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -51,6 +53,15 @@ public final class ModItems {
 		p -> new AxeItem(VOLTITE_TOOL_MATERIAL, 5.0F, -3.0F, p), new Item.Properties());
 	public static final Item VOLTITE_HOE = register("voltite_hoe",
 		p -> new HoeItem(VOLTITE_TOOL_MATERIAL, -3.0F, 0.0F, p), new Item.Properties());
+
+	/** The mod's only energy store: carry one to power the suit and the weapons. */
+	public static final Item VOLTITE_BATTERY = register(
+		"voltite_battery",
+		VoltiteBatteryItem::new,
+		new Item.Properties()
+			.stacksTo(1)
+			.component(ModComponents.ENERGY, 0)
+	);
 
 	public static Item register(String name, Item.Properties properties) {
 		return register(name, Item::new, properties);

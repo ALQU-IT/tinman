@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  * Fires energy bolts. A tap shoots straight away; holding the button long enough charges a heavier
  * shot that also sets off a small blast which damages mobs but never breaks blocks.
  */
-public class PulseGauntletItem extends net.minecraft.world.item.Item implements Energy.EnergyStoring {
+public class PulseGauntletItem extends net.minecraft.world.item.Item {
 	private static final int BAR_COLOUR = 0x3FE0E8;
 
 	public PulseGauntletItem(Properties properties) {
@@ -85,29 +85,14 @@ public class PulseGauntletItem extends net.minecraft.world.item.Item implements 
 	}
 
 	@Override
-	public boolean isBarVisible(ItemStack stack) {
-		return true;
-	}
-
-	@Override
-	public int getBarWidth(ItemStack stack) {
-		return Math.round(Energy.get(stack) * 13.0F / Energy.max());
-	}
-
-	@Override
-	public int getBarColor(ItemStack stack) {
-		return BAR_COLOUR;
-	}
-
-	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
 			Consumer<Component> tooltip, TooltipFlag flag) {
 		super.appendHoverText(stack, context, display, tooltip, flag);
 
 		TinManConfig.Weapons config = TinManConfig.get().weapons;
 
-		tooltip.accept(Component.translatable("tooltip.tinman.energy", Energy.get(stack), Energy.max())
-			.withStyle(ChatFormatting.AQUA));
+		tooltip.accept(Component.translatable("tooltip.tinman.needs_battery")
+			.withStyle(ChatFormatting.DARK_GRAY));
 		tooltip.accept(Component.translatable("tooltip.tinman.gauntlet", (int) config.pulseDamage, config.pulseEnergyCost)
 			.withStyle(ChatFormatting.DARK_GRAY));
 

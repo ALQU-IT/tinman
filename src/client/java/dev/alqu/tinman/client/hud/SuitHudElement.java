@@ -2,6 +2,7 @@ package dev.alqu.tinman.client.hud;
 
 import dev.alqu.tinman.config.TinManConfig;
 import dev.alqu.tinman.item.Energy;
+import dev.alqu.tinman.item.Power;
 import dev.alqu.tinman.registry.ModArmor;
 import dev.alqu.tinman.suit.SuitEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
@@ -56,9 +57,9 @@ public class SuitHudElement implements HudElement {
 			return;
 		}
 
-		List<ItemStack> pieces = SuitEvents.suitPieces(player);
-		int energy = Energy.total(pieces);
-		int max = Energy.max() * pieces.size();
+		List<ItemStack> batteries = Power.batteries(player);
+		int energy = Energy.total(batteries);
+		int max = Math.max(1, Energy.max() * batteries.size());
 		float fill = max == 0 ? 0.0F : Math.clamp(energy / (float) max, 0.0F, 1.0F);
 
 		int x = PANEL_X;

@@ -35,7 +35,9 @@ public class TinManConfig {
 
 	public static class Suit {
 		/** Maximum energy any single armour piece can hold. */
-		public int maxEnergy = 10000;
+		public int batteryCapacity = 100000;
+		/** Fraction of the energy cost each level of Conservation removes. */
+		public double conservationPerLevel = 0.15;
 		/** Whether the full-set creative flight ability is available at all. */
 		public boolean flightEnabled = true;
 		/** Energy drained per second of flight, split across the four worn pieces. */
