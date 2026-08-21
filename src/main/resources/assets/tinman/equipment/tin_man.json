@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "tinman:tin_man"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "tinman:tin_man"
+      }
+    ]
+  }
+}

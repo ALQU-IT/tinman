@@ -1,0 +1,62 @@
+{
+  "suit_power_up": {
+    "category": "player",
+    "subtitle": "subtitles.tinman.suit_power_up",
+    "sounds": [
+      {
+        "name": "tinman:suit_power_up",
+        "stream": false
+      }
+    ]
+  },
+  "suit_power_down": {
+    "category": "player",
+    "subtitle": "subtitles.tinman.suit_power_down",
+    "sounds": [
+      {
+        "name": "tinman:suit_power_down",
+        "stream": false
+      }
+    ]
+  },
+  "thruster_loop": {
+    "category": "player",
+    "subtitle": "subtitles.tinman.thruster_loop",
+    "sounds": [
+      {
+        "name": "tinman:thruster_loop",
+        "stream": false
+      }
+    ]
+  },
+  "repulsor_fire": {
+    "category": "player",
+    "subtitle": "subtitles.tinman.repulsor_fire",
+    "sounds": [
+      {
+        "name": "tinman:repulsor_fire",
+        "stream": false
+      }
+    ]
+  },
+  "assembler_hum": {
+    "category": "block",
+    "subtitle": "subtitles.tinman.assembler_hum",
+    "sounds": [
+      {
+        "name": "tinman:assembler_hum",
+        "stream": false
+      }
+    ]
+  },
+  "unibeam_fire": {
+    "category": "player",
+    "subtitle": "subtitles.tinman.unibeam_fire",
+    "sounds": [
+      {
+        "name": "tinman:unibeam_fire",
+        "stream": false
+      }
+    ]
+  }
+}

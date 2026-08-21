@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "voltite_ingot",
+  "ingredients": [
+    "tinman:voltite_block"
+  ],
+  "result": {
+    "id": "tinman:voltite_ingot",
+    "count": 9
+  }
+}

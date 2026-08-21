@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "tinman",
+  "version": "${version}",
+  "name": "Tin Man",
+  "description": "High-tech Voltite gear: a powered armour suit, energy weapons and the Assembler.",
+  "authors": [
+    "alqu-it"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.alqu.tinman.TinMan"
+    ],
+    "client": [
+      "dev.alqu.tinman.client.TinManClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  },
+  "icon": "assets/tinman/icon.png",
+  "contact": {
+    "sources": "https://github.com/ALQU-IT/tinman"
+  },
+  "accessWidener": "tinman.accesswidener",
+  "mixins": [
+    {
+      "config": "tinman.client.mixins.json",
+      "environment": "client"
+    }
+  ]
+}

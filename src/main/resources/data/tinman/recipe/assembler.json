@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "V": "tinman:voltite_ingot",
+    "C": "minecraft:crafting_table",
+    "B": "minecraft:iron_block"
+  },
+  "pattern": [
+    "IVI",
+    "ICI",
+    "BVB"
+  ],
+  "result": {
+    "id": "tinman:assembler"
+  }
+}

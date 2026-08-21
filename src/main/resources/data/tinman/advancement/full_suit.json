@@ -1,0 +1,42 @@
+{
+  "criteria": {
+    "whole_suit": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "tinman:tin_man_helmet"
+          },
+          {
+            "items": "tinman:tin_man_chestplate"
+          },
+          {
+            "items": "tinman:tin_man_leggings"
+          },
+          {
+            "items": "tinman:tin_man_boots"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "whole_suit"
+    ]
+  ],
+  "display": {
+    "icon": {
+      "id": "tinman:tin_man_chestplate"
+    },
+    "title": {
+      "translate": "advancements.tinman.full_suit.title"
+    },
+    "description": {
+      "translate": "advancements.tinman.full_suit.description"
+    },
+    "frame": "goal"
+  },
+  "sends_telemetry_event": false,
+  "parent": "tinman:build_assembler"
+}

@@ -1,0 +1,17 @@
+{
+  "type": "tinman:assembling",
+  "group": "voltite_ingot",
+  "key": {
+    "R": "tinman:raw_voltite"
+  },
+  "pattern": [
+    "RRR",
+    "RRR",
+    "RRR"
+  ],
+  "result": {
+    "id": "tinman:voltite_ingot",
+    "count": 10
+  },
+  "power_cost": 1
+}

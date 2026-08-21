@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "tinman:block/voltite_block"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "V": "tinman:voltite_ingot",
+    "R": "minecraft:redstone_block",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "IVI",
+    "VRV",
+    "IVI"
+  ],
+  "result": {
+    "id": "tinman:voltite_battery"
+  }
+}

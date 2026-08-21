@@ -1,0 +1,29 @@
+{
+  "criteria": {
+    "flown": {
+      "trigger": "tinman:suit_flight",
+      "conditions": {
+        "distance": 1000.0
+      }
+    }
+  },
+  "requirements": [
+    [
+      "flown"
+    ]
+  ],
+  "display": {
+    "icon": {
+      "id": "tinman:tin_man_boots"
+    },
+    "title": {
+      "translate": "advancements.tinman.fly_1000.title"
+    },
+    "description": {
+      "translate": "advancements.tinman.fly_1000.description"
+    },
+    "frame": "challenge"
+  },
+  "sends_telemetry_event": false,
+  "parent": "tinman:full_suit"
+}

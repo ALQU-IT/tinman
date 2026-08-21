@@ -1,0 +1,34 @@
+{
+  "criteria": {
+    "get_voltite": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "tinman:raw_voltite"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "get_voltite"
+    ]
+  ],
+  "display": {
+    "icon": {
+      "id": "tinman:raw_voltite"
+    },
+    "title": {
+      "translate": "advancements.tinman.root.title"
+    },
+    "description": {
+      "translate": "advancements.tinman.root.description"
+    },
+    "background": "minecraft:gui/advancements/backgrounds/stone",
+    "show_toast": false,
+    "announce_to_chat": false
+  },
+  "sends_telemetry_event": false
+}

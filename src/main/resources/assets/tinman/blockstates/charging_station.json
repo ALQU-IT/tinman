@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "tinman:block/charging_station"
+    },
+    "active=true": {
+      "model": "tinman:block/charging_station"
+    }
+  }
+}

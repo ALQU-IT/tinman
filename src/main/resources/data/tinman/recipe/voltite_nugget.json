@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tinman:voltite_ingot"
+  ],
+  "result": {
+    "id": "tinman:voltite_nugget",
+    "count": 9
+  }
+}
