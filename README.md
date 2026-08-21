@@ -101,9 +101,19 @@ you are shown matches what the server actually runs even if your own file differ
     "maxLaunchedBlocks": 140,          // per blast, so a big radius cannot flood the server
     "bladeEnergyBonusDamage": 15.0,
     "bladeEnergyCostPerHit": 15
+  },
+  "hud": {
+    "mobScannerEnabled": true,
+    "mobScannerRadius": 24.0,        // blocks; capped in practice by the server's tracking range
+    "mobScannerMaxTargets": 24,      // when more are in range, the nearest win
+    "mobScannerThroughWalls": true,
+    "mobScannerShowPassive": true
   }
 }
 ```
+
+The `hud` block is presentation only, so unlike the rest it is **not** overridden by the server:
+each player's own file decides what their visor draws.
 
 ---
 
@@ -205,8 +215,14 @@ your inventory — so does everything else powered in the mod.
   lances out from the chest, stops at the first solid block, and damages *everything* it passes
   through rather than only the first target. Damage, range, energy cost, cooldown and the ability
   itself are all config options.
-- Helmet HUD: energy bar (red below 15%), altitude, and the name and health of whatever your
-  crosshair is on.
+- Helmet HUD: energy bar (red below 15%), altitude, a contact count, and the name and health of
+  whatever your crosshair is on. The panel sizes itself to its longest line.
+- **Threat scanner.** Every living thing within 24 blocks gets an outline in the world, with a
+  floating name and health bar above it — red for hostile, cyan for harmless, gold for other
+  players, and the bar itself running green through amber to red as its target is hurt. Marks
+  stay visible **through terrain**, and are scaled with distance so a mob thirty blocks out is
+  still readable. Range, target cap, wall penetration and whether harmless creatures are marked
+  at all are config options, and the whole thing can be switched off.
 - Night vision underwater and in the dark.
 - **Energy hits zero and flight cuts out that same tick**, with a power-down sound. The armour
   keeps working as ordinary protection.
@@ -289,7 +305,7 @@ bars, the suit HUD and every weapon tooltip from config, and left alone it would
 whatever `config/tinman.json` that player has on disk — which on a server is routinely not what the
 server is running. The client applies the server's values over its own for the duration of the
 connection and drops them on disconnect; its own file is never written to. Purely local
-presentation settings, such as the flight lean, stay the player's own.
+presentation settings, such as the flight lean and the threat scanner, stay the player's own.
 
 Everything else still rides a synced vanilla carrier rather than a bespoke packet, which would
 have meant a second source of truth that could drift.
@@ -315,6 +331,13 @@ src/main/java/it/alqu/tinman/
 the flight lean into the two render-state fields vanilla's elytra pose already reads, rather than
 rotating the model itself, so the lean is the real elytra pose and stays correct if Mojang changes
 how that pose is built.
+
+The threat scanner draws itself as one-frame **gizmos** rather than a bespoke render type, which
+gets two awkward parts for free: vanilla's always-on-top gizmo pass clears the depth buffer before
+it runs, which is what lets a mark show through a wall, and text gizmos are already billboarded
+against the camera. Only the health bars are billboarded by hand, since gizmo rectangles take
+explicit world corners — the camera's orientation quaternion turns local right and up into world
+vectors for that.
 
 `src/main/resources/tinman.accesswidener` widens exactly two methods,
 `GhostSlots.setInput/setResult`. They are protected and live in a vanilla package, so a mod's own
@@ -362,8 +385,9 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - A hopper → Assembler → hopper → chest chain auto-crafted four times unattended.
 
 **Not verified**, because it needs a real graphical client rather than a headless server: the HUD
-overlay, screen rendering, the Assembler's recipe book, particle appearance, sound playback, worn
-armour layers, the flight lean on screen, and flight handling as felt in first person. The code paths are there, but treat the visuals and flight feel
+overlay, the threat scanner's marks in the world, screen rendering, the Assembler's recipe book,
+particle appearance, sound playback, worn armour layers, the flight lean on screen, and flight
+handling as felt in first person. The code paths are there, but treat the visuals and flight feel
 as the first things to check in game.
 
 A dedicated server never loads blockstates, models or textures at all, so anything wrong in those

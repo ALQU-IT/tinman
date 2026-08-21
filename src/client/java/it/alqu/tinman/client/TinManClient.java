@@ -4,6 +4,7 @@ import it.alqu.tinman.TinMan;
 import it.alqu.tinman.client.hud.SuitHudElement;
 import it.alqu.tinman.client.input.ModKeys;
 import it.alqu.tinman.client.render.FlightLean;
+import it.alqu.tinman.client.render.MobScanner;
 import it.alqu.tinman.config.TinManConfig;
 import it.alqu.tinman.network.ConfigSyncPayload;
 import it.alqu.tinman.client.particle.AssemblerSparkParticle;
@@ -41,6 +42,9 @@ public class TinManClient implements ClientModInitializer {
 				FlightLean.tick(client.level);
 			}
 		});
+
+		// Outlines nearby creatures in the world while the full suit is worn.
+		MobScanner.register();
 
 		// The bolt is drawn entirely by the particle trail the server broadcasts, so the
 		// entity itself needs no model — but it still needs a renderer registered.

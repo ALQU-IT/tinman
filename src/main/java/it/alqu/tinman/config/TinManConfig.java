@@ -27,13 +27,14 @@ public class TinManConfig {
 	 * would be worse than leaving them stale — but when the file is behind, the mod says so at
 	 * startup rather than letting a rebalance look like it did nothing.
 	 */
-	public static final int CURRENT_VERSION = 4;
+	public static final int CURRENT_VERSION = 5;
 
 	public int configVersion = CURRENT_VERSION;
 
 	public Worldgen worldgen = new Worldgen();
 	public Suit suit = new Suit();
 	public Weapons weapons = new Weapons();
+	public Hud hud = new Hud();
 
 	public static class Worldgen {
 		/** Master switch for Voltite ore generation. */
@@ -79,6 +80,19 @@ public class TinManConfig {
 		public int chargingStationRate = 100;
 		/** Energy a single Voltite Ingot is worth when used to recharge gear. */
 		public int energyPerIngot = 2500;
+	}
+
+	public static class Hud {
+		/** Whether the helmet marks nearby creatures in the world. */
+		public boolean mobScannerEnabled = true;
+		/** How far the scanner reaches, in blocks. */
+		public double mobScannerRadius = 24.0;
+		/** Most creatures marked at once. When more are in range, the nearest win. */
+		public int mobScannerMaxTargets = 24;
+		/** Whether marks stay visible through terrain, or are hidden by it like anything else. */
+		public boolean mobScannerThroughWalls = true;
+		/** Whether harmless creatures are marked as well as hostile ones. */
+		public boolean mobScannerShowPassive = true;
 	}
 
 	public static class Weapons {
