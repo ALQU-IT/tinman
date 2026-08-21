@@ -358,4 +358,4 @@ block. If you touch a blockstate JSON, check its property names against the `Boo
 
 ## Licence
 
-MIT — see `LICENSE`.
+GPL-3.0-or-later — see `LICENSE`.
