@@ -69,7 +69,10 @@ automatically after an update. Server-side values are authoritative.
     "unibeamDamage": 50.0,
     "unibeamRange": 32.0,
     "unibeamEnergyCost": 400,
-    "unibeamCooldownTicks": 40,           // per armour piece
+    "unibeamCooldownTicks": 40,
+    "flightLeanEnabled": true,
+    "flightLeanFullSpeed": 0.35,    // horizontal blocks/tick for a full lean
+    "flightLeanRate": 0.05,         // lean gained or shed per tick; smaller is slower           // per armour piece
     "flightEnabled": true,
     "flightDrainPerSecond": 20,
     "boostDrainMultiplier": 3.0,
@@ -191,6 +194,9 @@ your inventory — so does everything else powered in the mod.
 - Creative-style flight, draining energy per second. Hold sprint while flying to boost — faster,
   costlier, with thruster flames from the boots.
 - Immunity to fall and fire damage.
+- The suit **leans into the dive** as you pick up forward speed and eases back upright as you
+  slow, exactly the elytra pose. It eases both ways rather than snapping, and other players see
+  it too.
 - A chest-mounted **unibeam**, fired with a key (**R** by default, rebindable in Controls). It
   lances out from the chest, stops at the first solid block, and damages *everything* it passes
   through rather than only the first target. Damage, range, energy cost, cooldown and the ability
@@ -291,6 +297,11 @@ src/main/java/dev/alqu/tinman/
 └── worldgen/      config-driven ore placement modifier
 ```
 
+`src/client/resources/tinman.client.mixins.json` holds the mod's only mixin, client-only: it feeds
+the flight lean into the two render-state fields vanilla's elytra pose already reads, rather than
+rotating the model itself, so the lean is the real elytra pose and stays correct if Mojang changes
+how that pose is built.
+
 `src/main/resources/tinman.accesswidener` widens exactly two methods,
 `GhostSlots.setInput/setResult`. They are protected and live in a vanilla package, so a mod's own
 `RecipeBookComponent` cannot fill ghost slots without it. Nothing else in the mod needs widening.
@@ -318,6 +329,8 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - Recharging works both in the Assembler and the Charging Station, at the configured rate.
 - Batteries charge correctly, including enchanted ones, and Conservation reads back from the
   datapack registry at every level: a 100-energy action costs 100 / 85 / 70 / 55 at levels 0-3.
+- The mixin config loads and Mixin reports the JAVA_25 compatibility level, and the injector's
+  compiled descriptor matches the game's `extractRenderState` byte for byte.
 - Worn on a mob and read back with `/attribute`, the suit reports 30 armour / 20 toughness /
   0.8 knockback resistance against netherite's 20 / 12 / 0.4.
 - The unibeam damages every target along its line, leaves entities off the line alone, and stops
@@ -334,7 +347,7 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 
 **Not verified**, because it needs a real graphical client rather than a headless server: the HUD
 overlay, screen rendering, the Assembler's recipe book, particle appearance, sound playback, worn
-armour layers, and flight handling as felt in first person. The code paths are there, but treat the visuals and flight feel
+armour layers, the flight lean on screen, and flight handling as felt in first person. The code paths are there, but treat the visuals and flight feel
 as the first things to check in game.
 
 A dedicated server never loads blockstates, models or textures at all, so anything wrong in those

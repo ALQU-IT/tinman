@@ -27,5 +27,11 @@
   "contact": {
     "sources": "https://github.com/ALQU-IT/tinman"
   },
-  "accessWidener": "tinman.accesswidener"
+  "accessWidener": "tinman.accesswidener",
+  "mixins": [
+    {
+      "config": "tinman.client.mixins.json",
+      "environment": "client"
+    }
+  ]
 }

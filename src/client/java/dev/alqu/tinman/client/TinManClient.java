@@ -3,6 +3,7 @@ package dev.alqu.tinman.client;
 import dev.alqu.tinman.TinMan;
 import dev.alqu.tinman.client.hud.SuitHudElement;
 import dev.alqu.tinman.client.input.ModKeys;
+import dev.alqu.tinman.client.render.FlightLean;
 import dev.alqu.tinman.client.particle.AssemblerSparkParticle;
 import dev.alqu.tinman.client.particle.ThrusterFlameParticle;
 import dev.alqu.tinman.client.screen.AssemblerScreen;
@@ -11,6 +12,7 @@ import dev.alqu.tinman.registry.ModEntities;
 import dev.alqu.tinman.registry.ModParticles;
 import dev.alqu.tinman.registry.ModMenus;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -22,6 +24,12 @@ public class TinManClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ModKeys.register();
+
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			if (client.level != null) {
+				FlightLean.tick(client.level);
+			}
+		});
 
 		// The bolt is drawn entirely by the particle trail the server broadcasts, so the
 		// entity itself needs no model — but it still needs a renderer registered.

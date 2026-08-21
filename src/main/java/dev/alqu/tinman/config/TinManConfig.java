@@ -25,7 +25,7 @@ public class TinManConfig {
 	 * would be worse than leaving them stale — but when the file is behind, the mod says so at
 	 * startup rather than letting a rebalance look like it did nothing.
 	 */
-	public static final int CURRENT_VERSION = 3;
+	public static final int CURRENT_VERSION = 4;
 
 	public int configVersion = CURRENT_VERSION;
 
@@ -59,6 +59,12 @@ public class TinManConfig {
 		public int unibeamEnergyCost = 400;
 		/** Ticks before the unibeam can fire again. */
 		public int unibeamCooldownTicks = 40;
+		/** Whether the suit leans into a dive while flying forward, the way an elytra does. */
+		public boolean flightLeanEnabled = true;
+		/** Horizontal speed, in blocks per tick, at which the lean reaches full. */
+		public double flightLeanFullSpeed = 0.35;
+		/** How much of the lean is gained or shed each tick; smaller is slower. */
+		public double flightLeanRate = 0.05;
 		/** Whether the full-set creative flight ability is available at all. */
 		public boolean flightEnabled = true;
 		/** Energy drained per second of flight, split across the four worn pieces. */
