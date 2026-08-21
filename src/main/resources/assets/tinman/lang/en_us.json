@@ -20,6 +20,7 @@
   "hud.tinman.altitude": "ALT %s",
   "hud.tinman.energy": "PWR %s / %s",
   "hud.tinman.flight_disabled": "FLIGHT OFFLINE",
+  "hud.tinman.scan": "SCAN %s contacts, %s hostile",
   "hud.tinman.target": "%s  %s/%s HP",
   "item.tinman.pulse_gauntlet": "Pulse Gauntlet",
   "item.tinman.raw_voltite": "Raw Voltite",

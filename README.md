@@ -47,7 +47,11 @@ HUD, screens and particles, and the server needs it for everything else.
 ## Configuration
 
 Written to `config/tinman.json` on first launch and re-saved on load, so new options appear
-automatically after an update. Server-side values are authoritative.
+automatically after an update.
+
+Server-side values are authoritative. Because the client also reads config to draw bars, the HUD
+and tooltips, joining a server hands it the server's numbers to use until it disconnects, so what
+you are shown matches what the server actually runs even if your own file differs.
 
 > **Upgrading from an earlier build:** values already in your `config/tinman.json` are kept, by
 > design — only genuinely new keys are added. That means a rebalance of existing keys does **not**
@@ -97,9 +101,19 @@ automatically after an update. Server-side values are authoritative.
     "maxLaunchedBlocks": 140,          // per blast, so a big radius cannot flood the server
     "bladeEnergyBonusDamage": 15.0,
     "bladeEnergyCostPerHit": 15
+  },
+  "hud": {
+    "mobScannerEnabled": true,
+    "mobScannerRadius": 24.0,        // blocks; capped in practice by the server's tracking range
+    "mobScannerMaxTargets": 24,      // when more are in range, the nearest win
+    "mobScannerThroughWalls": true,
+    "mobScannerShowPassive": true
   }
 }
 ```
+
+The `hud` block is presentation only, so unlike the rest it is **not** overridden by the server:
+each player's own file decides what their visor draws.
 
 ---
 
@@ -201,8 +215,14 @@ your inventory — so does everything else powered in the mod.
   lances out from the chest, stops at the first solid block, and damages *everything* it passes
   through rather than only the first target. Damage, range, energy cost, cooldown and the ability
   itself are all config options.
-- Helmet HUD: energy bar (red below 15%), altitude, and the name and health of whatever your
-  crosshair is on.
+- Helmet HUD: energy bar (red below 15%), altitude, a contact count, and the name and health of
+  whatever your crosshair is on. The panel sizes itself to its longest line.
+- **Threat scanner.** Every living thing within 24 blocks gets an outline in the world, with a
+  floating name and health bar above it — red for hostile, cyan for harmless, gold for other
+  players, and the bar itself running green through amber to red as its target is hurt. Marks
+  stay visible **through terrain**, and are scaled with distance so a mob thirty blocks out is
+  still readable. Range, target cap, wall penetration and whether harmless creatures are marked
+  at all are config options, and the whole thing can be switched off.
 - Night vision underwater and in the dark.
 - **Energy hits zero and flight cuts out that same tick**, with a power-down sound. The armour
   keeps working as ordinary protection.
@@ -273,17 +293,27 @@ Energy consumption, flight permission, recipe matching and projectile logic are 
 permission through the vanilla abilities packet. Particles the player shouldn't be alone in seeing
 are broadcast from the server with `sendParticles`, so nearby players see the same thing.
 
-The mod ships exactly **one custom packet**, for the unibeam, because a key press is the one piece
-of state the server genuinely cannot observe. It carries no data: the client only reports that the
-key was pressed, and the server decides on its own whether the suit is worn and charged, where the
-beam points, what it hits and what it costs — so a client cannot ask for a shot it has not earned.
+The mod ships **two custom packets**, and only where a vanilla carrier genuinely cannot do the job.
+
+The first is the unibeam key press, the one piece of state the server cannot observe for itself. It
+carries no data: the client only reports that the key was pressed, and the server decides on its
+own whether the suit is worn and charged, where the beam points, what it hits and what it costs —
+so a client cannot ask for a shot it has not earned.
+
+The second sends the server's gameplay numbers to each client as it joins. The client draws battery
+bars, the suit HUD and every weapon tooltip from config, and left alone it would draw them from
+whatever `config/tinman.json` that player has on disk — which on a server is routinely not what the
+server is running. The client applies the server's values over its own for the duration of the
+connection and drops them on disconnect; its own file is never written to. Purely local
+presentation settings, such as the flight lean and the threat scanner, stay the player's own.
+
 Everything else still rides a synced vanilla carrier rather than a bespoke packet, which would
 have meant a second source of truth that could drift.
 
 ### Layout
 
 ```
-src/main/java/dev/alqu/tinman/
+src/main/java/it/alqu/tinman/
 ├── advancement/   custom flight-distance criterion + persistent attachment
 ├── block/         Assembler and Charging Station blocks and block entities
 ├── component/     the tinman:energy data component
@@ -301,6 +331,13 @@ src/main/java/dev/alqu/tinman/
 the flight lean into the two render-state fields vanilla's elytra pose already reads, rather than
 rotating the model itself, so the lean is the real elytra pose and stays correct if Mojang changes
 how that pose is built.
+
+The threat scanner draws itself as one-frame **gizmos** rather than a bespoke render type, which
+gets two awkward parts for free: vanilla's always-on-top gizmo pass clears the depth buffer before
+it runs, which is what lets a mark show through a wall, and text gizmos are already billboarded
+against the camera. Only the health bars are billboarded by hand, since gizmo rectangles take
+explicit world corners — the camera's orientation quaternion turns local right and up into world
+vectors for that.
 
 `src/main/resources/tinman.accesswidener` widens exactly two methods,
 `GhostSlots.setInput/setResult`. They are protected and live in a vanilla package, so a mod's own
@@ -329,6 +366,8 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - Recharging works both in the Assembler and the Charging Station, at the configured rate.
 - Batteries charge correctly, including enchanted ones, and Conservation reads back from the
   datapack registry at every level: a 100-energy action costs 100 / 85 / 70 / 55 at levels 0-3.
+- The config-sync packet round-trips all eleven fields unchanged with the buffer fully consumed,
+  so the hand-written composite codec reads back in the order it writes.
 - The mixin config loads and Mixin reports the JAVA_25 compatibility level, and the injector's
   compiled descriptor matches the game's `extractRenderState` byte for byte.
 - Worn on a mob and read back with `/attribute`, the suit reports 30 armour / 20 toughness /
@@ -346,8 +385,9 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - A hopper → Assembler → hopper → chest chain auto-crafted four times unattended.
 
 **Not verified**, because it needs a real graphical client rather than a headless server: the HUD
-overlay, screen rendering, the Assembler's recipe book, particle appearance, sound playback, worn
-armour layers, the flight lean on screen, and flight handling as felt in first person. The code paths are there, but treat the visuals and flight feel
+overlay, the threat scanner's marks in the world, screen rendering, the Assembler's recipe book,
+particle appearance, sound playback, worn armour layers, the flight lean on screen, and flight
+handling as felt in first person. The code paths are there, but treat the visuals and flight feel
 as the first things to check in game.
 
 A dedicated server never loads blockstates, models or textures at all, so anything wrong in those
@@ -358,4 +398,4 @@ block. If you touch a blockstate JSON, check its property names against the `Boo
 
 ## Licence
 
-MIT — see `LICENSE`.
+GPL-3.0-or-later — see `LICENSE`.

@@ -1,0 +1,208 @@
+package it.alqu.tinman.menu;
+
+import it.alqu.tinman.block.AssemblerBlockEntity;
+import it.alqu.tinman.recipe.AssemblingRecipe;
+import it.alqu.tinman.registry.ModBlocks;
+import it.alqu.tinman.registry.ModItems;
+import it.alqu.tinman.registry.ModMenus;
+import net.minecraft.recipebook.ServerPlaceRecipe;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.StackedItemContents;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.RecipeBookMenu;
+import net.minecraft.world.inventory.RecipeBookType;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeHolder;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class AssemblerMenu extends RecipeBookMenu {
+	private static final int GRID_START = 0;
+	private static final int GRID_END = AssemblerBlockEntity.GRID_SIZE;
+	private static final int POWER_SLOT = AssemblerBlockEntity.POWER_SLOT;
+	private static final int OUTPUT_SLOT = AssemblerBlockEntity.OUTPUT_SLOT;
+	private static final int CONTAINER_END = AssemblerBlockEntity.CONTAINER_SIZE;
+	private static final int PLAYER_INVENTORY_END = CONTAINER_END + 27;
+	private static final int HOTBAR_END = PLAYER_INVENTORY_END + 9;
+
+	private final Container container;
+	private final ContainerData data;
+
+	/** Client-side constructor: the real contents arrive through the usual container sync. */
+	public AssemblerMenu(int containerId, Inventory playerInventory) {
+		this(containerId, playerInventory, new SimpleContainer(AssemblerBlockEntity.CONTAINER_SIZE),
+			new SimpleContainerData(AssemblerBlockEntity.DATA_COUNT));
+	}
+
+	public AssemblerMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
+		super(ModMenus.ASSEMBLER, containerId);
+		checkContainerSize(container, AssemblerBlockEntity.CONTAINER_SIZE);
+		checkContainerDataCount(data, AssemblerBlockEntity.DATA_COUNT);
+		this.container = container;
+		this.data = data;
+
+		// 3x3 assembly grid
+		for (int row = 0; row < 3; row++) {
+			for (int col = 0; col < 3; col++) {
+				this.addSlot(new Slot(container, col + row * 3, 30 + col * 18, 17 + row * 18));
+			}
+		}
+
+		// Power cell: Voltite Ingots only.
+		this.addSlot(new Slot(container, POWER_SLOT, 152, 35) {
+			@Override
+			public boolean mayPlace(ItemStack stack) {
+				return stack.is(ModItems.VOLTITE_INGOT);
+			}
+		});
+
+		// Output: take-only.
+		this.addSlot(new Slot(container, OUTPUT_SLOT, 124, 35) {
+			@Override
+			public boolean mayPlace(ItemStack stack) {
+				return false;
+			}
+		});
+
+		this.addStandardInventorySlots(playerInventory, 8, 84);
+		this.addDataSlots(data);
+	}
+
+	/** 0-1 fraction of the current assembly, for the progress arrow. */
+	public float assemblyProgress() {
+		int total = this.data.get(AssemblerBlockEntity.DATA_TOTAL);
+		int progress = this.data.get(AssemblerBlockEntity.DATA_PROGRESS);
+		return total == 0 ? 0.0F : Math.clamp(progress / (float) total, 0.0F, 1.0F);
+	}
+
+	@Override
+	public boolean stillValid(Player player) {
+		return this.container.stillValid(player);
+	}
+
+	@Override
+	public ItemStack quickMoveStack(Player player, int index) {
+		Slot slot = this.slots.get(index);
+
+		if (!slot.hasItem()) {
+			return ItemStack.EMPTY;
+		}
+
+		ItemStack stack = slot.getItem();
+		ItemStack original = stack.copy();
+
+		if (index < CONTAINER_END) {
+			// Anything in the machine goes back to the player.
+			if (!this.moveItemStackTo(stack, CONTAINER_END, HOTBAR_END, true)) {
+				return ItemStack.EMPTY;
+			}
+
+			slot.onQuickCraft(stack, original);
+		} else if (stack.is(ModItems.VOLTITE_INGOT) && this.moveItemStackTo(stack, POWER_SLOT, POWER_SLOT + 1, false)) {
+			// Voltite Ingots fill the power cell first.
+		} else if (this.moveItemStackTo(stack, GRID_START, GRID_END, false)) {
+			// Then the assembly grid.
+		} else if (index < PLAYER_INVENTORY_END) {
+			if (!this.moveItemStackTo(stack, PLAYER_INVENTORY_END, HOTBAR_END, false)) {
+				return ItemStack.EMPTY;
+			}
+		} else if (!this.moveItemStackTo(stack, CONTAINER_END, PLAYER_INVENTORY_END, false)) {
+			return ItemStack.EMPTY;
+		}
+
+		if (stack.isEmpty()) {
+			slot.setByPlayer(ItemStack.EMPTY);
+		} else {
+			slot.setChanged();
+		}
+
+		if (stack.getCount() == original.getCount()) {
+			return ItemStack.EMPTY;
+		}
+
+		slot.onTake(player, stack);
+		return original;
+	}
+
+	// --- recipe book ---
+
+	/** The nine grid slots, in reading order, as the book expects them. */
+	public List<Slot> getInputGridSlots() {
+		List<Slot> grid = new ArrayList<>(AssemblerBlockEntity.GRID_SIZE);
+
+		for (int slot = GRID_START; slot < GRID_END; slot++) {
+			grid.add(this.slots.get(slot));
+		}
+
+		return grid;
+	}
+
+	public Slot getResultSlot() {
+		return this.slots.get(OUTPUT_SLOT);
+	}
+
+	/** Grid and output slots; the book dims everything else while it is open. */
+	public boolean isRecipeBookSlot(Slot slot) {
+		return slot.container == this.container
+			&& (slot.getContainerSlot() < GRID_END || slot.getContainerSlot() == OUTPUT_SLOT);
+	}
+
+	private CraftingInput gridInput() {
+		List<ItemStack> items = new ArrayList<>(AssemblerBlockEntity.GRID_SIZE);
+
+		for (int slot = GRID_START; slot < GRID_END; slot++) {
+			items.add(this.container.getItem(slot));
+		}
+
+		return CraftingInput.of(3, 3, items);
+	}
+
+	@Override
+	public void fillCraftSlotsStackedContents(StackedItemContents stackedContents) {
+		for (int slot = GRID_START; slot < GRID_END; slot++) {
+			stackedContents.accountSimpleStack(this.container.getItem(slot));
+		}
+	}
+
+	@Override
+	public RecipeBookType getRecipeBookType() {
+		// RecipeBookType is a fixed vanilla enum and only selects which saved open/filter state
+		// the book uses, not which recipes it lists, so borrowing CRAFTING is harmless.
+		return RecipeBookType.CRAFTING;
+	}
+
+	@Override
+	public RecipeBookMenu.PostPlaceAction handlePlacement(boolean useMaxItems, boolean allowDroppingItemsToClear,
+			RecipeHolder<?> recipe, ServerLevel level, Inventory inventory) {
+		@SuppressWarnings("unchecked")
+		RecipeHolder<AssemblingRecipe> typed = (RecipeHolder<AssemblingRecipe>) recipe;
+		List<Slot> grid = this.getInputGridSlots();
+
+		return ServerPlaceRecipe.placeRecipe(new ServerPlaceRecipe.CraftingMenuAccess<AssemblingRecipe>() {
+			@Override
+			public void fillCraftSlotsStackedContents(StackedItemContents stackedContents) {
+				AssemblerMenu.this.fillCraftSlotsStackedContents(stackedContents);
+			}
+
+			@Override
+			public void clearCraftingContent() {
+				for (int slot = GRID_START; slot < GRID_END; slot++) {
+					AssemblerMenu.this.container.setItem(slot, ItemStack.EMPTY);
+				}
+			}
+
+			@Override
+			public boolean recipeMatches(RecipeHolder<AssemblingRecipe> candidate) {
+				return candidate.value().matches(AssemblerMenu.this.gridInput(), level);
+			}
+		}, 3, 3, grid, grid, inventory, typed, useMaxItems, allowDroppingItemsToClear);
+	}
+}
