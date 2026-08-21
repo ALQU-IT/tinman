@@ -2,10 +2,13 @@ package dev.alqu.tinman.suit;
 
 import dev.alqu.tinman.config.TinManConfig;
 import dev.alqu.tinman.item.Power;
+import dev.alqu.tinman.config.TinManConfig;
+import dev.alqu.tinman.network.ConfigSyncPayload;
 import dev.alqu.tinman.network.FireUnibeamPayload;
 import dev.alqu.tinman.registry.ModParticles;
 import dev.alqu.tinman.registry.ModSounds;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -44,9 +47,15 @@ public final class Unibeam {
 
 	public static void register() {
 		PayloadTypeRegistry.serverboundPlay().register(FireUnibeamPayload.TYPE, FireUnibeamPayload.STREAM_CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(ConfigSyncPayload.TYPE, ConfigSyncPayload.STREAM_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(FireUnibeamPayload.TYPE,
 			(payload, context) -> context.server().execute(() -> fire(context.player())));
+
+		// Hand each joining player the numbers this server actually runs, so their bars,
+		// HUD and tooltips agree with it rather than with their own config file.
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+			sender.sendPacket(ConfigSyncPayload.of(TinManConfig.get())));
 	}
 
 	public static void forget(UUID player) {

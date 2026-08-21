@@ -4,6 +4,8 @@ import dev.alqu.tinman.TinMan;
 import dev.alqu.tinman.client.hud.SuitHudElement;
 import dev.alqu.tinman.client.input.ModKeys;
 import dev.alqu.tinman.client.render.FlightLean;
+import dev.alqu.tinman.config.TinManConfig;
+import dev.alqu.tinman.network.ConfigSyncPayload;
 import dev.alqu.tinman.client.particle.AssemblerSparkParticle;
 import dev.alqu.tinman.client.particle.ThrusterFlameParticle;
 import dev.alqu.tinman.client.screen.AssemblerScreen;
@@ -13,6 +15,8 @@ import dev.alqu.tinman.registry.ModParticles;
 import dev.alqu.tinman.registry.ModMenus;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -24,6 +28,13 @@ public class TinManClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ModKeys.register();
+
+		// Adopt the server's gameplay numbers while connected, and drop them again on the way out
+		// so a later single-player world uses this installation's own file.
+		ClientPlayNetworking.registerGlobalReceiver(ConfigSyncPayload.TYPE,
+			(payload, context) -> context.client().execute(() -> TinManConfig.get().applyServerValues(payload)));
+
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> TinManConfig.reloadFromDisk());
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.level != null) {

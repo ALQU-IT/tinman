@@ -14,8 +14,10 @@ import java.nio.file.Path;
  *
  * <p>The instance is loaded once during mod init and then read from both the logical client and
  * server. Values are only ever read, never mutated at runtime, so no synchronisation is needed.
- * Server-side values are authoritative for anything that affects gameplay: the client copy is only
- * consulted for presentation (bar colours, HUD thresholds).
+ * Server-side values are authoritative for anything that affects gameplay. The client does read
+ * config to draw bars, the HUD and tooltips, so on joining a server it is sent the server's
+ * numbers and applies them over its own until it disconnects — otherwise a player whose file
+ * differed from the server's would be shown figures the server never uses.
  */
 public class TinManConfig {
 	/**
@@ -123,6 +125,33 @@ public class TinManConfig {
 		}
 
 		return instance;
+	}
+
+	/**
+	 * Adopts the server's gameplay numbers for as long as this client is connected.
+	 *
+	 * <p>Applied over the in-memory instance rather than through a separate lookup, so every
+	 * existing read of the config gets the right value with no call site needing to know. Never
+	 * written to disk: the player's own file is left exactly as they wrote it.
+	 */
+	public void applyServerValues(dev.alqu.tinman.network.ConfigSyncPayload values) {
+		this.suit.batteryCapacity = values.batteryCapacity();
+		this.suit.conservationPerLevel = values.conservationPerLevel();
+		this.suit.flightEnabled = values.flightEnabled();
+		this.suit.unibeamEnabled = values.unibeamEnabled();
+		this.weapons.pulseDamage = values.pulseDamage();
+		this.weapons.chargedPulseDamage = values.chargedPulseDamage();
+		this.weapons.pulseEnergyCost = values.pulseEnergyCost();
+		this.weapons.chargedPulseEnergyCost = values.chargedPulseEnergyCost();
+		this.weapons.chargedShotEnabled = values.chargedShotEnabled();
+		this.weapons.bladeEnergyBonusDamage = values.bladeEnergyBonusDamage();
+		this.weapons.bladeEnergyCostPerHit = values.bladeEnergyCostPerHit();
+	}
+
+	/** Drops any adopted server values and goes back to this installation's own file. */
+	public static void reloadFromDisk() {
+		instance = null;
+		get();
 	}
 
 	private static Path path() {

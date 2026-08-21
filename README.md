@@ -47,7 +47,11 @@ HUD, screens and particles, and the server needs it for everything else.
 ## Configuration
 
 Written to `config/tinman.json` on first launch and re-saved on load, so new options appear
-automatically after an update. Server-side values are authoritative.
+automatically after an update.
+
+Server-side values are authoritative. Because the client also reads config to draw bars, the HUD
+and tooltips, joining a server hands it the server's numbers to use until it disconnects, so what
+you are shown matches what the server actually runs even if your own file differs.
 
 > **Upgrading from an earlier build:** values already in your `config/tinman.json` are kept, by
 > design — only genuinely new keys are added. That means a rebalance of existing keys does **not**
@@ -273,10 +277,20 @@ Energy consumption, flight permission, recipe matching and projectile logic are 
 permission through the vanilla abilities packet. Particles the player shouldn't be alone in seeing
 are broadcast from the server with `sendParticles`, so nearby players see the same thing.
 
-The mod ships exactly **one custom packet**, for the unibeam, because a key press is the one piece
-of state the server genuinely cannot observe. It carries no data: the client only reports that the
-key was pressed, and the server decides on its own whether the suit is worn and charged, where the
-beam points, what it hits and what it costs — so a client cannot ask for a shot it has not earned.
+The mod ships **two custom packets**, and only where a vanilla carrier genuinely cannot do the job.
+
+The first is the unibeam key press, the one piece of state the server cannot observe for itself. It
+carries no data: the client only reports that the key was pressed, and the server decides on its
+own whether the suit is worn and charged, where the beam points, what it hits and what it costs —
+so a client cannot ask for a shot it has not earned.
+
+The second sends the server's gameplay numbers to each client as it joins. The client draws battery
+bars, the suit HUD and every weapon tooltip from config, and left alone it would draw them from
+whatever `config/tinman.json` that player has on disk — which on a server is routinely not what the
+server is running. The client applies the server's values over its own for the duration of the
+connection and drops them on disconnect; its own file is never written to. Purely local
+presentation settings, such as the flight lean, stay the player's own.
+
 Everything else still rides a synced vanilla carrier rather than a bespoke packet, which would
 have meant a second source of truth that could drift.
 
@@ -329,6 +343,8 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - Recharging works both in the Assembler and the Charging Station, at the configured rate.
 - Batteries charge correctly, including enchanted ones, and Conservation reads back from the
   datapack registry at every level: a 100-energy action costs 100 / 85 / 70 / 55 at levels 0-3.
+- The config-sync packet round-trips all eleven fields unchanged with the buffer fully consumed,
+  so the hand-written composite codec reads back in the order it writes.
 - The mixin config loads and Mixin reports the JAVA_25 compatibility level, and the injector's
   compiled descriptor matches the game's `extractRenderState` byte for byte.
 - Worn on a mob and read back with `/attribute`, the suit reports 30 armour / 20 toughness /
