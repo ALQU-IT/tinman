@@ -81,6 +81,7 @@ you are shown matches what the server actually runs even if your own file differ
     "flightDrainPerSecond": 20,
     "boostDrainMultiplier": 3.0,
     "boostSpeed": 0.085,
+    "climbSpeed": 0.6,             // vertical thrust per tick; settles at 1.5x, so ~18 blocks/s
     "chargingStationRate": 1250,  // energy per second, to each thing it is charging at once
     "energyPerIngot": 2500        // what one Voltite Ingot is worth; a block is nine of them
   },
@@ -206,6 +207,10 @@ your inventory — so does everything else powered in the mod.
 
 - Creative-style flight, draining energy per second. Hold sprint while flying to boost — faster,
   costlier, with thruster flames from the boots.
+- **Vertical thrust.** Vanilla creative flight climbs at 4.5 blocks/second no matter how fast you
+  are already going, which next to a boosted cruise of roughly 37 feels like wading. Holding jump
+  or sneak in the suit adds thrust of its own, settling around **18 blocks/second** — four times
+  vanilla, and tunable with `climbSpeed`.
 - Immunity to fall and fire damage.
 - The suit **leans into the dive** as you pick up forward speed and eases back upright as you
   slow, exactly the elytra pose. It eases both ways rather than snapping, and it only happens

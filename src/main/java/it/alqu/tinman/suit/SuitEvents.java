@@ -21,6 +21,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Abilities;
+import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.util.Mth;
@@ -150,6 +151,7 @@ public final class SuitEvents {
 
 			if (abilities.flying) {
 				drainForFlight(player, config);
+				applyClimb(player, config);
 				trackFlightDistance(player);
 			}
 
@@ -200,6 +202,46 @@ public final class SuitEvents {
 		if (whole > 0) {
 			Power.pay(player, whole);
 		}
+	}
+
+	/**
+	 * Adds the suit's own vertical thrust on top of vanilla's while jump or sneak is held.
+	 *
+	 * <p>Vanilla pushes a climb by {@code flyingSpeed * 3}, or 0.15 a tick, and then
+	 * {@code Player.travel} throws away the tick's vertical result and keeps 0.6 of the speed it
+	 * started with. A steady push against that damping settles at 1.5x itself, so creative flight
+	 * climbs at 0.225 blocks a tick — 4.5 a second, against something like 37 for a boosted
+	 * cruise. That eightfold gap is what makes going up feel like wading.
+	 *
+	 * <p>Raising {@code flyingSpeed} would not close it: horizontal speed scales with the same
+	 * number, so both grow and the gap stays. This is deliberately vertical only.
+	 *
+	 * <p>Done here rather than on the client because it is a suit ability, and gameplay numbers
+	 * are the server's to decide — a client-side version would let a player pick their own climb
+	 * rate on someone else's server. The same damping applies to the server's own simulation of
+	 * the player, so what the client is handed settles at 1.5x {@code climbSpeed}.
+	 *
+	 * <p>Jump and sneak reach the server as part of the ordinary player input packet, so reading
+	 * them here needs nothing of our own.
+	 */
+	private static void applyClimb(ServerPlayer player, TinManConfig config) {
+		double speed = config.suit.climbSpeed;
+
+		if (speed <= 0.0) {
+			return;
+		}
+
+		Input input = player.getLastClientInput();
+		int direction = (input.jump() ? 1 : 0) - (input.shift() ? 1 : 0);
+
+		if (direction == 0) {
+			return;
+		}
+
+		player.setDeltaMovement(player.getDeltaMovement().add(0.0, direction * speed, 0.0));
+		// Marks the velocity as changed so the server actually sends it back to the client, which
+		// is otherwise the authority on where a flying player is.
+		player.hurtMarked = true;
 	}
 
 	private static void applyBoost(ServerPlayer player, TinManConfig config) {

@@ -27,7 +27,7 @@ public class TinManConfig {
 	 * would be worse than leaving them stale — but when the file is behind, the mod says so at
 	 * startup rather than letting a rebalance look like it did nothing.
 	 */
-	public static final int CURRENT_VERSION = 6;
+	public static final int CURRENT_VERSION = 7;
 
 	public int configVersion = CURRENT_VERSION;
 
@@ -76,6 +76,15 @@ public class TinManConfig {
 		public double boostDrainMultiplier = 3.0;
 		/** Extra velocity applied per tick while sprint-boosting. */
 		public double boostSpeed = 0.085;
+		/**
+		 * Vertical thrust, in blocks per tick, applied while jump or sneak is held in flight.
+		 *
+		 * <p>Flight keeps only 0.6 of its vertical speed each tick, so a steady push settles at
+		 * 1.5x itself: this default climbs at roughly 0.9 blocks a tick, about 18 a second,
+		 * against the 4.5 vanilla creative flight manages. Set to 0 to leave vertical flight
+		 * exactly as vanilla has it.
+		 */
+		public double climbSpeed = 0.6;
 		/**
 		 * Energy the Charging Station adds per second, to every piece it is charging at once.
 		 * The default is 1.5x what the Assembler used to manage on a single item before it
