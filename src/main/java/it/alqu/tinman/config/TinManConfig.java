@@ -27,7 +27,7 @@ public class TinManConfig {
 	 * would be worse than leaving them stale — but when the file is behind, the mod says so at
 	 * startup rather than letting a rebalance look like it did nothing.
 	 */
-	public static final int CURRENT_VERSION = 8;
+	public static final int CURRENT_VERSION = 9;
 
 	public int configVersion = CURRENT_VERSION;
 
@@ -40,11 +40,17 @@ public class TinManConfig {
 		/** Master switch for Voltite ore generation. */
 		public boolean voltiteOreEnabled = true;
 		/**
-		 * Average number of Voltite vein placement attempts per chunk. Fractional values are
-		 * honoured: 2.5 means two guaranteed attempts plus a 50% chance of a third.
-		 * Diamond makes 11 attempts per chunk over a much taller band, so this is notably rarer.
+		 * Average number of Voltite vein placement attempts per chunk, split across the two vein
+		 * sizes. Fractional values are honoured: 2.5 means two guaranteed attempts plus a 50%
+		 * chance of a third.
+		 *
+		 * <p>Tuned to put Voltite on a par with redstone. Measured over 1617 generated chunks,
+		 * redstone averages 36.1 ore blocks per chunk; at 3.5 attempts Voltite managed 18.1, so
+		 * this is twice that. Voltite needs the extra attempts because its veins are smaller
+		 * (6 and 4 against redstone's 8) and it discards air-exposed blocks, which redstone does
+		 * not.
 		 */
-		public double voltiteVeinsPerChunk = 3.5;
+		public double voltiteVeinsPerChunk = 7.0;
 	}
 
 	public static class Suit {

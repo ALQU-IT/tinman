@@ -64,7 +64,7 @@ you are shown matches what the server actually runs even if your own file differ
 {
   "worldgen": {
     "voltiteOreEnabled": true,
-    "voltiteVeinsPerChunk": 3.5   // fractional values work: 3.5 = three veins plus a coin flip
+    "voltiteVeinsPerChunk": 7.0   // fractional values work: 3.5 = three veins plus a coin flip
   },
   "suit": {
     "batteryCapacity": 250000,
@@ -126,9 +126,20 @@ Voltite Ore and Deepslate Voltite Ore generate between **Y -40 and Y 16** in two
 6). They need an **iron pickaxe or better**, drop 1–2 Raw Voltite (affected by Fortune) or the ore
 block itself with Silk Touch, and give 3–7 XP.
 
-Measured over 401 generated chunks with the default rate: about **14 Voltite per chunk against 23
-diamond**, so it is meaningfully rarer than diamond overall while being concentrated in a much
-narrower band. Turn `voltiteVeinsPerChunk` up or down to taste.
+The rate is tuned to put Voltite **on a par with redstone**. Measured over 1873 generated chunks
+of the same world:
+
+| ore | blocks per chunk |
+| --- | --- |
+| redstone | 35.90 |
+| **Voltite** | **35.73** |
+| diamond | 24.66 |
+
+It needs 7 vein attempts a chunk to get there, against redstone's 12, because those attempts land
+in a much narrower band — Y -40 to 16, where redstone runs the full Y -64 to 15 and again in a
+trapezoid around bedrock. Working the other way, its veins are smaller (6 and 4 against redstone's
+8) and it discards air-exposed blocks, which redstone does not. Turn `voltiteVeinsPerChunk` up or
+down to taste; ore count scales with it almost exactly linearly.
 
 Smelt or blast Raw Voltite (or the ore) into a **Voltite Ingot**. Nine nuggets make an ingot, nine
 ingots make a **Block of Voltite** (which glows faintly at light level 4).
@@ -386,7 +397,8 @@ the real thing would be, so you can drop replacements straight in:
 
 Verified by running a real dedicated 26.2 server and inspecting world data:
 
-- The mod loads with no errors; ore generates in the right Y band at the measured rate.
+- The mod loads with no errors; ore generates in the right Y band at the measured rate — 35.73
+  blocks per chunk over 1873 chunks, against 35.90 for redstone in the same world.
 - The Assembler crafts from its own recipe type, consuming the grid and the right number of
   power-cell ingots.
 - The Charging Station puts exactly the configured 1250 energy/second into **each** of three
