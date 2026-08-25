@@ -64,7 +64,7 @@ you are shown matches what the server actually runs even if your own file differ
 {
   "worldgen": {
     "voltiteOreEnabled": true,
-    "voltiteVeinsPerChunk": 3.5   // doubled in practice: both features read it independently
+    "voltiteVeinsPerChunk": 4.2   // doubled in practice: both features read it independently
   },
   "suit": {
     "batteryCapacity": 250000,
@@ -130,7 +130,7 @@ The rate is tuned to put Voltite **on a par with redstone**, measured by countin
 generated region files rather than reasoning from the placement JSON.
 
 Both placed features read `voltiteVeinsPerChunk` independently, so the real count is twice it: one
-attempt at a size-9 vein and one at a size-5 vein per unit. At 3.5 that is 7 attempts a chunk
+attempt at a size-9 vein and one at a size-5 vein per unit. At 4.2 that is 8.4 attempts a chunk
 against redstone's 12, and it keeps up because its attempts land in a much narrower band — Y -40 to
 16, where redstone runs the full Y -64 to 15 and again in a trapezoid around bedrock.
 
@@ -406,8 +406,9 @@ the real thing would be, so you can drop replacements straight in:
 Verified by running a real dedicated 26.2 server and inspecting world data:
 
 - The mod loads with no errors and ore generates in the right Y band. Rate and vein size are both
-  measured off generated region files: before the air-exposure discard was removed, Voltite came
-  out at 3.38 blocks a vein against redstone's 5.22, a third of its veins only one or two blocks.
+  measured off generated region files. Removing the air-exposure discard took Voltite from 3.38
+  blocks a vein to **4.95**, against redstone's 5.22 in the same world, and veins of only one or
+  two blocks from a third of them down to 15%, against redstone's 11%.
 - The Assembler crafts from its own recipe type, consuming the grid and the right number of
   power-cell ingots.
 - The Charging Station puts exactly the configured 1250 energy/second into **each** of three

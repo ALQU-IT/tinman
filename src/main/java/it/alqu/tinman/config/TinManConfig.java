@@ -27,7 +27,7 @@ public class TinManConfig {
 	 * would be worse than leaving them stale — but when the file is behind, the mod says so at
 	 * startup rather than letting a rebalance look like it did nothing.
 	 */
-	public static final int CURRENT_VERSION = 10;
+	public static final int CURRENT_VERSION = 11;
 
 	public int configVersion = CURRENT_VERSION;
 
@@ -47,9 +47,10 @@ public class TinManConfig {
 		 * <p>Both placed features read this same number, so the real count is twice it: one
 		 * attempt at a big vein and one at a small one per unit.
 		 *
-		 * <p>Tuned to put Voltite on a par with redstone, which averages 36.1 ore blocks a chunk.
+		 * <p>Tuned to put Voltite on a par with redstone, which averages 35.9 ore blocks a chunk.
+		 * Block count scales with this almost exactly linearly, so it is a straight ratio to set.
 		 */
-		public double voltiteVeinsPerChunk = 3.5;
+		public double voltiteVeinsPerChunk = 4.2;
 	}
 
 	public static class Suit {
