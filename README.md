@@ -64,7 +64,7 @@ you are shown matches what the server actually runs even if your own file differ
 {
   "worldgen": {
     "voltiteOreEnabled": true,
-    "voltiteVeinsPerChunk": 7.0   // fractional values work: 3.5 = three veins plus a coin flip
+    "voltiteVeinsPerChunk": 3.5   // doubled in practice: both features read it independently
   },
   "suit": {
     "batteryCapacity": 250000,
@@ -122,24 +122,25 @@ each player's own file decides what their visor draws.
 
 ### Voltite
 
-Voltite Ore and Deepslate Voltite Ore generate between **Y -40 and Y 16** in two vein sizes (4 and
-6). They need an **iron pickaxe or better**, drop 1–2 Raw Voltite (affected by Fortune) or the ore
+Voltite Ore and Deepslate Voltite Ore generate between **Y -40 and Y 16** in two vein sizes (5 and
+9). They need an **iron pickaxe or better**, drop 1–2 Raw Voltite (affected by Fortune) or the ore
 block itself with Silk Touch, and give 3–7 XP.
 
-The rate is tuned to put Voltite **on a par with redstone**. Measured over 1873 generated chunks
-of the same world:
+The rate is tuned to put Voltite **on a par with redstone**, measured by counting blocks in
+generated region files rather than reasoning from the placement JSON.
 
-| ore | blocks per chunk |
-| --- | --- |
-| redstone | 35.90 |
-| **Voltite** | **35.73** |
-| diamond | 24.66 |
+Both placed features read `voltiteVeinsPerChunk` independently, so the real count is twice it: one
+attempt at a size-9 vein and one at a size-5 vein per unit. At 3.5 that is 7 attempts a chunk
+against redstone's 12, and it keeps up because its attempts land in a much narrower band — Y -40 to
+16, where redstone runs the full Y -64 to 15 and again in a trapezoid around bedrock.
 
-It needs 7 vein attempts a chunk to get there, against redstone's 12, because those attempts land
-in a much narrower band — Y -40 to 16, where redstone runs the full Y -64 to 15 and again in a
-trapezoid around bedrock. Working the other way, its veins are smaller (6 and 4 against redstone's
-8) and it discards air-exposed blocks, which redstone does not. Turn `voltiteVeinsPerChunk` up or
-down to taste; ore count scales with it almost exactly linearly.
+Neither feature discards air-exposed blocks. They used to, at 0.5 and 0.6, and it made the ore
+almost useless to find: caving shows you exactly the air-exposed face of a vein, so half of every
+vein you could actually see was deleted. Measured over 1041 chunks it left Voltite averaging 3.38
+blocks a vein against redstone's 5.22, with **a third of all veins one or two blocks** — the right
+amount of ore in total, smeared over 11132 veins where redstone used 7160.
+
+Turn `voltiteVeinsPerChunk` up or down to taste; ore count scales with it almost exactly linearly.
 
 Smelt or blast Raw Voltite (or the ore) into a **Voltite Ingot**. Nine nuggets make an ingot, nine
 ingots make a **Block of Voltite** (which glows faintly at light level 4).
@@ -404,8 +405,9 @@ the real thing would be, so you can drop replacements straight in:
 
 Verified by running a real dedicated 26.2 server and inspecting world data:
 
-- The mod loads with no errors; ore generates in the right Y band at the measured rate — 35.73
-  blocks per chunk over 1873 chunks, against 35.90 for redstone in the same world.
+- The mod loads with no errors and ore generates in the right Y band. Rate and vein size are both
+  measured off generated region files: before the air-exposure discard was removed, Voltite came
+  out at 3.38 blocks a vein against redstone's 5.22, a third of its veins only one or two blocks.
 - The Assembler crafts from its own recipe type, consuming the grid and the right number of
   power-cell ingots.
 - The Charging Station puts exactly the configured 1250 energy/second into **each** of three
