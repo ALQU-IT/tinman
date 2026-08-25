@@ -240,6 +240,13 @@ your inventory — so does everything else powered in the mod.
   lances out from the chest, stops at the first solid block, and damages *everything* it passes
   through rather than only the first target. Damage, range, energy cost, cooldown and the ability
   itself are all config options.
+
+  It is drawn as a **solid beam**, not a line of particles — vanilla's own beacon beam, laid along
+  the shot rather than straight up, so it scrolls and glows the way a beacon does. The shot is a
+  hitscan the server settles inside one tick, so there is no entity to hang a renderer off: the
+  two ends of the traced line are sent to every client near enough to see them, and each holds the
+  beam for nine ticks while it fades. What you see is the exact segment that was damaged, cut
+  short at terrain in the same place.
 - Helmet HUD: energy bar (red below 15%), altitude, a contact count, and the name and health of
   whatever your crosshair is on. The panel sizes itself to its longest line.
 - **Threat scanner.** Every living thing within 24 blocks gets an outline in the world, with a
@@ -432,8 +439,8 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 
 **Not verified**, because it needs a real graphical client rather than a headless server: the HUD
 overlay, the threat scanner's marks in the world, screen rendering, the Assembler's recipe book,
-particle appearance, sound playback, worn armour layers, the flight lean on screen, and flight
-handling as felt in first person. The code paths are there, but treat the visuals and flight feel
+particle appearance, the unibeam's beam on screen, sound playback, worn armour layers, the flight
+lean on screen, and flight handling as felt in first person. The code paths are there, but treat the visuals and flight feel
 as the first things to check in game.
 
 A dedicated server never loads blockstates, models or textures at all, so anything wrong in those

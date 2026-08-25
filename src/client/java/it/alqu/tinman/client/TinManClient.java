@@ -5,6 +5,7 @@ import it.alqu.tinman.client.hud.SuitHudElement;
 import it.alqu.tinman.client.input.ModKeys;
 import it.alqu.tinman.client.render.FlightLean;
 import it.alqu.tinman.client.render.MobScanner;
+import it.alqu.tinman.client.render.UnibeamRenderer;
 import it.alqu.tinman.config.TinManConfig;
 import it.alqu.tinman.network.ConfigSyncPayload;
 import it.alqu.tinman.client.particle.AssemblerSparkParticle;
@@ -35,16 +36,23 @@ public class TinManClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(ConfigSyncPayload.TYPE,
 			(payload, context) -> context.client().execute(() -> TinManConfig.get().applyServerValues(payload)));
 
-		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> TinManConfig.reloadFromDisk());
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+			TinManConfig.reloadFromDisk();
+			UnibeamRenderer.clear();
+		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.level != null) {
 				FlightLean.tick(client.level);
+				UnibeamRenderer.tick();
 			}
 		});
 
 		// Outlines nearby creatures in the world while the full suit is worn.
 		MobScanner.register();
+
+		// Draws each unibeam shot as a solid beam for a few frames after it lands.
+		UnibeamRenderer.register();
 
 		// The bolt is drawn entirely by the particle trail the server broadcasts, so the
 		// entity itself needs no model — but it still needs a renderer registered.
