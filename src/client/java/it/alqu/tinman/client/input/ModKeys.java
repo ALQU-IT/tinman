@@ -28,9 +28,15 @@ public final class ModKeys {
 				return;
 			}
 
-			// consumeClick drains the queued presses, so holding the key does not spam the server;
-			// the cooldown is still enforced server side regardless of what arrives.
+			// Drained and thrown away: the beam is continuous, so what matters is whether the key
+			// is down right now, not how many press events have queued up behind it.
 			while (FIRE_UNIBEAM.consumeClick()) {
+				// discarded on purpose
+			}
+
+			// One request a tick for as long as it is held. Each buys exactly one tick of beam,
+			// so letting go stops it without needing to tell the server anything.
+			if (FIRE_UNIBEAM.isDown()) {
 				ClientPlayNetworking.send(FireUnibeamPayload.INSTANCE);
 			}
 		});

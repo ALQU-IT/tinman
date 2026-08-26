@@ -72,8 +72,7 @@ you are shown matches what the server actually runs even if your own file differ
     "unibeamEnabled": true,
     "unibeamDamage": 50.0,
     "unibeamRange": 32.0,
-    "unibeamEnergyCost": 400,
-    "unibeamCooldownTicks": 40,
+    "unibeamEnergyPerSecond": 1200,  // ~3.5 minutes of continuous fire from a full battery
     "flightLeanEnabled": true,
     "flightLeanFullSpeed": 0.35,    // horizontal blocks/tick for a full lean
     "flightLeanRate": 0.05,         // lean gained or shed per tick; smaller is slower           // per armour piece
@@ -237,17 +236,22 @@ your inventory — so does everything else powered in the mod.
   it off what does arrive: sustained time in the air (a jump is over inside about thirteen ticks)
   and a vertical speed that is not a fall. For the player at their own client the flag is right
   there, so their lean is exact.
-- A chest-mounted **unibeam**, fired with a key (**R** by default, rebindable in Controls). It
+- A chest-mounted **unibeam**, held on with a key (**R** by default, rebindable in Controls). It
   lances out from the chest, stops at the first solid block, and damages *everything* it passes
-  through rather than only the first target. Damage, range, energy cost, cooldown and the ability
-  itself are all config options.
+  through rather than only the first target. Damage, range, energy rate and the ability itself are
+  all config options.
+
+  It is **continuous**: hold the key and the beam stays on, sweeping wherever you look, until you
+  let go or the battery gives out. There is no cooldown — energy is the limit, drawn per second
+  rather than per shot. Vanilla's invulnerability frames keep it from hitting a given target
+  twenty times a second; in practice each target takes `unibeamDamage` about twice a second.
 
   It is drawn as a **solid beam**, not a line of particles — vanilla's own beacon beam, laid along
-  the shot rather than straight up, so it scrolls and glows the way a beacon does. The shot is a
-  hitscan the server settles inside one tick, so there is no entity to hang a renderer off: the
-  two ends of the traced line are sent to every client near enough to see them, and each holds the
-  beam for nine ticks while it fades. What you see is the exact segment that was damaged, cut
-  short at terrain in the same place.
+  the shot rather than straight up, so it scrolls and glows the way a beacon does. The beam is a
+  hitscan the server re-settles every tick, so there is no entity to hang a renderer off: the two
+  ends of the traced line are sent once a tick to every client near enough to see them, keyed by
+  the shooter so a held beam refreshes in place instead of stacking twenty copies a second. What
+  you see is the exact segment that was damaged, cut short at terrain in the same place.
 - Helmet HUD: energy bar (red below 15%), altitude, a contact count, and the name and health of
   whatever your crosshair is on. The panel sizes itself to its longest line.
 - **Threat scanner.** Every living thing within 24 blocks gets an outline in the world, with a
@@ -338,12 +342,14 @@ Energy consumption, flight permission, recipe matching and projectile logic are 
 permission through the vanilla abilities packet. Particles the player shouldn't be alone in seeing
 are broadcast from the server with `sendParticles`, so nearby players see the same thing.
 
-The mod ships **two custom packets**, and only where a vanilla carrier genuinely cannot do the job.
+The mod ships **three custom packets**, and only where a vanilla carrier genuinely cannot do the job.
 
-The first is the unibeam key press, the one piece of state the server cannot observe for itself. It
-carries no data: the client only reports that the key was pressed, and the server decides on its
+The first is the unibeam key, the one piece of state the server cannot observe for itself. It
+carries no data: the client reports once a tick that the key is held, and the server decides on its
 own whether the suit is worn and charged, where the beam points, what it hits and what it costs —
-so a client cannot ask for a shot it has not earned.
+so a client cannot ask for a beam it has not earned. Each request buys exactly one tick, so the
+beam stops on its own when the packets stop, whether that is a released key, a disconnect or a
+dropped connection. There is no held firing state on the server to get stuck on.
 
 The second sends the server's gameplay numbers to each client as it joins. The client draws battery
 bars, the suit HUD and every weapon tooltip from config, and left alone it would draw them from
@@ -351,6 +357,10 @@ whatever `config/tinman.json` that player has on disk — which on a server is r
 server is running. The client applies the server's values over its own for the duration of the
 connection and drops them on disconnect; its own file is never written to. Purely local
 presentation settings, such as the flight lean and the threat scanner, stay the player's own.
+
+The third carries each tick of a live unibeam — the shooter and the two ends of the line the
+server just traced. A hitscan leaves nothing in the world to render, so without it nobody, the
+shooter included, would see the beam they are firing.
 
 Everything else still rides a synced vanilla carrier rather than a bespoke packet, which would
 have meant a second source of truth that could drift.

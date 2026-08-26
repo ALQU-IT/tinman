@@ -11,16 +11,17 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Draws each unibeam shot as a solid beam, using vanilla's beacon beam.
  *
- * <p>A shot is a hitscan the server resolves inside one tick, so there is nothing persistent to
- * hang a renderer off — no entity, no block entity. Instead each shot arrives as a pair of points
- * and is held here for a fraction of a second while it is drawn and faded out, which is what turns
- * an instantaneous line of damage into something anyone can actually see.
+ * <p>A beam is a hitscan the server re-resolves every tick it is held, so there is nothing
+ * persistent to hang a renderer off — no entity, no block entity. Instead updates arrive as a pair
+ * of points, once a tick per firing player, and are kept here under that player's entity id. A
+ * held beam therefore refreshes in place rather than piling twenty overlapping copies a second on
+ * top of each other, and one that stops simply runs out of updates and fades.
  *
  * <p>{@link BeaconRenderer#submitBeaconBeam} does the geometry, so this is the real beacon beam
  * rather than a lookalike: same texture, same scrolling, same inner core inside an outer glow. It
@@ -30,8 +31,13 @@ public final class UnibeamRenderer {
 	private UnibeamRenderer() {
 	}
 
-	/** Ticks a beam stays on screen. Long enough to register, short enough to read as a burst. */
-	private static final int LIFETIME = 9;
+	/**
+	 * Ticks a beam survives without an update before it is gone.
+	 *
+	 * <p>Short, because a held beam is refreshed every tick: this is only the tail after the key
+	 * is released, plus enough slack that a dropped or late packet does not make it flicker.
+	 */
+	private static final int LIFETIME = 4;
 
 	/** Bright cyan-white core, matching the suit's palette rather than a beacon's white. */
 	private static final int COLOUR_CORE = 0xFF9FF4FF;
@@ -40,12 +46,13 @@ public final class UnibeamRenderer {
 	private static final float CORE_RADIUS = 0.11F;
 	private static final float GLOW_RADIUS = 0.2F;
 
-	private static final List<Shot> SHOTS = new ArrayList<>();
+	/** At most one live beam per shooter, so a held one refreshes instead of accumulating. */
+	private static final Map<Integer, Shot> BEAMS = new HashMap<>();
 
-	/** One fired beam, from the muzzle to wherever the server's trace stopped. */
+	/** One beam, from a muzzle to wherever the server's trace stopped. */
 	private static final class Shot {
-		private final Vec3 start;
-		private final Vec3 end;
+		private Vec3 start;
+		private Vec3 end;
 		private int age;
 
 		private Shot(Vec3 start, Vec3 end) {
@@ -56,23 +63,28 @@ public final class UnibeamRenderer {
 
 	public static void register() {
 		ClientPlayNetworking.registerGlobalReceiver(UnibeamShotPayload.TYPE, (payload, context) ->
-			context.client().execute(() -> SHOTS.add(new Shot(payload.start(), payload.end()))));
+			context.client().execute(() -> {
+				Shot beam = BEAMS.computeIfAbsent(payload.shooterId(), id -> new Shot(payload.start(), payload.end()));
+				beam.start = payload.start();
+				beam.end = payload.end();
+				beam.age = 0;
+			}));
 
 		LevelRenderEvents.COLLECT_SUBMITS.register(UnibeamRenderer::draw);
 	}
 
-	/** Ages the beams a tick and drops the spent ones. */
+	/** Ages the beams a tick and drops any that have stopped being refreshed. */
 	public static void tick() {
-		SHOTS.removeIf(shot -> ++shot.age >= LIFETIME);
+		BEAMS.values().removeIf(beam -> ++beam.age >= LIFETIME);
 	}
 
 	/** Everything goes when the world does, so a beam cannot outlive the level it was fired in. */
 	public static void clear() {
-		SHOTS.clear();
+		BEAMS.clear();
 	}
 
 	private static void draw(LevelRenderContext context) {
-		if (SHOTS.isEmpty()) {
+		if (BEAMS.isEmpty()) {
 			return;
 		}
 
@@ -82,8 +94,9 @@ public final class UnibeamRenderer {
 		// Scrolls the texture along the beam, the same way a beacon's climbs.
 		float animation = client.level == null ? 0.0F : Math.floorMod(client.level.getGameTime(), 40) + partialTick;
 
-		for (Shot shot : SHOTS) {
-			// Fade over the life rather than blinking out, so the beam reads as dying away.
+		for (Shot shot : BEAMS.values()) {
+			// A beam being held is refreshed to age 0 every tick, so this only bites on the tail
+			// after it stops: it dies away rather than blinking out.
 			float remaining = 1.0F - Mth.clamp((shot.age + partialTick) / LIFETIME, 0.0F, 1.0F);
 			int length = Mth.ceil(shot.end.distanceTo(shot.start));
 

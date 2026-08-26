@@ -27,7 +27,7 @@ public class TinManConfig {
 	 * would be worse than leaving them stale — but when the file is behind, the mod says so at
 	 * startup rather than letting a rebalance look like it did nothing.
 	 */
-	public static final int CURRENT_VERSION = 11;
+	public static final int CURRENT_VERSION = 12;
 
 	public int configVersion = CURRENT_VERSION;
 
@@ -60,14 +60,21 @@ public class TinManConfig {
 		public double conservationPerLevel = 0.15;
 		/** Whether the full set's chest-mounted unibeam is available. */
 		public boolean unibeamEnabled = true;
-		/** Damage the unibeam deals to everything it passes through. */
+		/**
+		 * Damage the unibeam deals to everything it passes through.
+		 *
+		 * <p>The beam re-fires every tick while held, but vanilla's invulnerability frames mean a
+		 * given target can only actually be hurt about twice a second, so this lands roughly
+		 * twice over per second rather than twenty times.
+		 */
 		public double unibeamDamage = 50.0;
 		/** How far the unibeam reaches, in blocks. */
 		public double unibeamRange = 32.0;
-		/** Energy the unibeam draws per shot, before Conservation. */
-		public int unibeamEnergyCost = 400;
-		/** Ticks before the unibeam can fire again. */
-		public int unibeamCooldownTicks = 40;
+		/**
+		 * Energy the unibeam draws per second of firing, before Conservation. A full battery is
+		 * worth a little over three minutes of continuous fire at this rate.
+		 */
+		public int unibeamEnergyPerSecond = 1200;
 		/** Whether the suit leans into a dive while flying forward, the way an elytra does. */
 		public boolean flightLeanEnabled = true;
 		/** Horizontal speed, in blocks per tick, at which the lean reaches full. */
