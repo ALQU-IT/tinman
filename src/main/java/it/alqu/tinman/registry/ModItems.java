@@ -61,6 +61,9 @@ public final class ModItems {
 		new Item.Properties()
 			.stacksTo(1)
 			.component(ModComponents.ENERGY, 0)
+			// Without an enchantment value an item is not enchantable at all, whatever tags name
+			// it -- so Conservation could be given by command but never offered by a table.
+			.enchantable(15)
 	);
 
 	public static Item register(String name, Item.Properties properties) {

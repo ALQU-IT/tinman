@@ -330,6 +330,20 @@ Ingots and a redstone block), charge it, and carry it; the suit and both weapons
 battery in your inventory. It holds 100,000 by default, stored in a `tinman:energy` data
 component so charge survives death, chests and multiplayer.
 
+### Enchanting
+
+Every piece of Voltite gear is enchantable at a table, which needs more than an enchantment value
+on the item: an enchanting table offers only enchantments whose `supported_items` name the stack,
+and every vanilla `#minecraft:enchantable/*` tag is built out of the base item tags — `#swords`,
+`#pickaxes`, `#axes`, `#shovels`, `#hoes`, and the four armour-slot tags. A modded item is in none
+of them by default, so it arrives at the table with an enchantment value, a full grid of bookshelf
+power, and nothing whatsoever on offer.
+
+So the mod adds itself to those base tags, and everything cascades from there: `#swords` reaches
+`melee_weapon` → `sharp_weapon` → `weapon`, plus `sweeping`, `fire_aspect`, `durability` and
+`vanishing`. The Pulse Gauntlet is neither tool nor melee weapon and joins `enchantable/durability`
+directly, which is the one tag that fits it.
+
 **Conservation** (I–III) is a custom enchantment for batteries, obtainable at an enchanting table.
 Each level takes 15% off the energy every action costs, so a 100-energy action costs 85, 70 or 55.
 When several batteries are carried, the highest Conservation level among them applies — taking the
@@ -471,6 +485,10 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
   buffer and its part-burned block dropped 8 Voltite Ingots, alongside its contents.
 - The Assembler no longer charges: a lone battery in its grid over ingots is untouched after ten
   seconds, and the ingots are not consumed.
+- Every piece of gear resolves into the vanilla enchantable tags at runtime, checked with
+  `execute if items` against the built tag set: blade in `weapon` and `sweeping`, pickaxe in
+  `mining` and `mining_loot`, axe in `sharp_weapon`, armour in `armor` and its slot tag, gauntlet
+  in `durability` and `vanishing`, battery in the mod's own battery tag.
 - Batteries charge correctly, including enchanted ones, and Conservation reads back from the
   datapack registry at every level: a 100-energy action costs 100 / 85 / 70 / 55 at levels 0-3.
 - The config-sync packet round-trips all eleven fields unchanged with the buffer fully consumed,
