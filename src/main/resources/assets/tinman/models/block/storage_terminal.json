@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "tinman:block/storage_terminal_top",
+    "front": "tinman:block/storage_terminal_front",
+    "side": "tinman:block/storage_terminal_side"
+  }
+}

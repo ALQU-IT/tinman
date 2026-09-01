@@ -3,6 +3,7 @@ package it.alqu.tinman.registry;
 import it.alqu.tinman.TinMan;
 import it.alqu.tinman.block.AssemblerBlock;
 import it.alqu.tinman.block.ChargingStationBlock;
+import it.alqu.tinman.block.TerminalBlock;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -80,6 +81,18 @@ public final class ModBlocks {
 			.strength(3.5F, 6.0F)
 			.sound(SoundType.METAL)
 			.lightLevel(state -> state.getValue(ChargingStationBlock.ACTIVE) ? 9 : 2)
+	);
+
+	/** Pools every chest in range into one searchable grid. */
+	public static final Block STORAGE_TERMINAL = register(
+		"storage_terminal",
+		TerminalBlock::new,
+		BlockBehaviour.Properties.of()
+			.mapColor(MapColor.METAL)
+			.requiresCorrectToolForDrops()
+			.strength(3.5F, 6.0F)
+			.sound(SoundType.METAL)
+			.lightLevel(state -> 6)
 	);
 
 	public static Block register(String name, Function<BlockBehaviour.Properties, Block> factory, BlockBehaviour.Properties properties) {

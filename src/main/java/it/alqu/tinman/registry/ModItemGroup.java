@@ -29,6 +29,7 @@ public final class ModItemGroup {
 				output.accept(ModBlocks.VOLTITE_BLOCK);
 				output.accept(ModBlocks.ASSEMBLER);
 				output.accept(ModBlocks.CHARGING_STATION);
+				output.accept(ModBlocks.STORAGE_TERMINAL);
 				output.accept(ModItems.RAW_VOLTITE);
 				output.accept(ModItems.VOLTITE_INGOT);
 				output.accept(ModItems.VOLTITE_NUGGET);

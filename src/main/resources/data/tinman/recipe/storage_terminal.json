@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "V": "tinman:voltite_ingot",
+    "C": "minecraft:chest",
+    "E": "minecraft:ender_pearl",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "IVI",
+    "VEV",
+    "ICI"
+  ],
+  "result": { "id": "tinman:storage_terminal" }
+}

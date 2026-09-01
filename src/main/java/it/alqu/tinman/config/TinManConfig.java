@@ -27,7 +27,7 @@ public class TinManConfig {
 	 * would be worse than leaving them stale — but when the file is behind, the mod says so at
 	 * startup rather than letting a rebalance look like it did nothing.
 	 */
-	public static final int CURRENT_VERSION = 12;
+	public static final int CURRENT_VERSION = 13;
 
 	public int configVersion = CURRENT_VERSION;
 
@@ -35,6 +35,7 @@ public class TinManConfig {
 	public Suit suit = new Suit();
 	public Weapons weapons = new Weapons();
 	public Hud hud = new Hud();
+	public Storage storage = new Storage();
 
 	public static class Worldgen {
 		/** Master switch for Voltite ore generation. */
@@ -106,6 +107,14 @@ public class TinManConfig {
 		public int chargingStationRate = 1250;
 		/** Energy a single Voltite Ingot is worth when used to recharge gear. */
 		public int energyPerIngot = 2500;
+	}
+
+	public static class Storage {
+		/**
+		 * How far a Storage Terminal reaches for chests, in blocks. Only loaded chunks are
+		 * searched, so a terminal cannot pull from terrain nobody is keeping alive.
+		 */
+		public double terminalRadius = 15.0;
 	}
 
 	public static class Hud {

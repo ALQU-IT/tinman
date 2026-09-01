@@ -12,6 +12,7 @@ import it.alqu.tinman.client.particle.AssemblerSparkParticle;
 import it.alqu.tinman.client.particle.ThrusterFlameParticle;
 import it.alqu.tinman.client.screen.AssemblerScreen;
 import it.alqu.tinman.client.screen.ChargingStationScreen;
+import it.alqu.tinman.client.screen.TerminalScreen;
 import it.alqu.tinman.registry.ModEntities;
 import it.alqu.tinman.registry.ModParticles;
 import it.alqu.tinman.registry.ModMenus;
@@ -63,6 +64,7 @@ public class TinManClient implements ClientModInitializer {
 
 		MenuScreens.register(ModMenus.ASSEMBLER, AssemblerScreen::new);
 		MenuScreens.register(ModMenus.CHARGING_STATION, ChargingStationScreen::new);
+		MenuScreens.register(ModMenus.STORAGE_TERMINAL, TerminalScreen::new);
 
 		// Sits with the other status bars so it hides along with the rest of the HUD.
 		HudElementRegistry.attachElementAfter(VanillaHudElements.ARMOR_BAR,

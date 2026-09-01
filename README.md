@@ -102,6 +102,9 @@ you are shown matches what the server actually runs even if your own file differ
     "bladeEnergyBonusDamage": 15.0,
     "bladeEnergyCostPerHit": 15
   },
+  "storage": {
+    "terminalRadius": 15.0         // how far a Storage Terminal reaches for chests
+  },
   "hud": {
     "mobScannerEnabled": true,
     "mobScannerRadius": 24.0,        // blocks; capped in practice by the server's tracking range
@@ -186,6 +189,39 @@ hopper are spread across the grid rather than piled into one slot, so multi-slot
 automated.
 
 The Assembler **builds** gear; it does not charge it. Recharging belongs to the Charging Station.
+
+### The Storage Terminal
+
+A block that pools **every chest within 15 blocks** into one searchable grid. Type in the search
+box to filter, click an entry to pull a stack out, and the items leave the chests they were
+actually sitting in. Radius is a config option.
+
+- **What counts as storage** is the `tinman:terminal_sources` block tag — chests, trapped chests,
+  barrels and shulker boxes by default, and a datapack can widen it. A tag rather than "any block
+  with an inventory" because every block entity with slots is a `Container`: without it a terminal
+  would cheerfully serve up the coal out of your furnaces.
+- **Counts are the real pooled totals.** 412 cobblestone across nine chests shows as one entry of
+  412, not fifteen stacks in fifteen slots.
+- **Clicking never uses the cursor.** Left click takes a stack, right click takes one, shift-click
+  takes a stack — all of them straight into your inventory, or dropped at your feet if it is full.
+  Cursor-held items are the fiddliest thing to keep in step between client and server, and a
+  terminal has no need for them.
+- **Shift-clicking your own inventory sends items back out** to the chests, merging into existing
+  stacks before starting new ones.
+- Only **loaded chunks** are searched, so a terminal cannot reach into terrain nobody is keeping
+  alive.
+
+The grid is a display, not an inventory: its slots are backed by a scratch container the server
+repaints from a fresh scan, and nothing can ever be put into them. Withdrawals are handled by the
+menu itself rather than by the usual slot mechanics, which would happily hand a player a stack that
+does not exist. Nothing is cached — chests near a terminal are opened, filled and broken by hand
+constantly, and an index that has to be invalidated by every one of those paths is an index that
+will eventually be wrong.
+
+Container order is pinned to nearest-first. A chunk hands its block entities over in hash order,
+which is arbitrary and can differ between two scans of the same unchanged room; left alone that
+reshuffles the grid under the player's cursor on every refresh. Sorting also means withdrawals
+drain the closest chest first.
 
 ### The Tin Man suit
 
@@ -342,7 +378,7 @@ Energy consumption, flight permission, recipe matching and projectile logic are 
 permission through the vanilla abilities packet. Particles the player shouldn't be alone in seeing
 are broadcast from the server with `sendParticles`, so nearby players see the same thing.
 
-The mod ships **three custom packets**, and only where a vanilla carrier genuinely cannot do the job.
+The mod ships **four custom packets**, and only where a vanilla carrier genuinely cannot do the job.
 
 The first is the unibeam key, the one piece of state the server cannot observe for itself. It
 carries no data: the client reports once a tick that the key is held, and the server decides on its
@@ -361,6 +397,11 @@ presentation settings, such as the flight lean and the threat scanner, stay the 
 The third carries each tick of a live unibeam — the shooter and the two ends of the line the
 server just traced. A hitscan leaves nothing in the world to render, so without it nobody, the
 shooter included, would see the beam they are firing.
+
+The fourth carries the Storage Terminal's search box and scroll position. The pool is assembled
+server side from chests the client has never seen the contents of, so it cannot filter locally —
+and shipping every chest in the room over the wire on every keystroke, for a search box, would be
+the worse trade.
 
 Everything else still rides a synced vanilla carrier rather than a bespoke packet, which would
 have meant a second source of truth that could drift.
@@ -449,6 +490,10 @@ Verified by running a real dedicated 26.2 server and inspecting world data:
 - Pulse bolts damage mobs, despawn on impact, and a charged blast damages mobs while leaving
   adjacent glass intact.
 - A hopper → Assembler → hopper → chest chain auto-crafted four times unattended.
+- The Storage Terminal scans correctly: with a chest 2 blocks away, a barrel at 5, a furnace
+  adjacent and another chest at 30, it found exactly the two tagged containers in range, pooled
+  116 cobblestone out of three separate stacks into one entry, and withdrawing 70 left 46 — taken
+  from the nearest chest first, with the barrel untouched.
 
 **Not verified**, because it needs a real graphical client rather than a headless server: the HUD
 overlay, the threat scanner's marks in the world, screen rendering, the Assembler's recipe book,
