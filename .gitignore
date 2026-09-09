@@ -16,3 +16,6 @@ run/
 
 # Stray downloads
 *.tar.gz
+
+# pixel-art tool output
+tools/pixelart/sheet.html
