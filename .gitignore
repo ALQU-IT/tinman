@@ -19,3 +19,5 @@ run/
 
 # pixel-art tool output
 tools/pixelart/sheet.html
+__pycache__/
+*.pyc
